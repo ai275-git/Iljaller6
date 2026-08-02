@@ -1,0 +1,3488 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WorkPotluck 워크포트락 — 파주시 AI 업무비서 (프로토타입)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink-bg:#0B1020;
+  --ink-bg-2:#161B33;
+  --bg:#F3F4FB;
+  --card:#FFFFFF;
+  --primary-1:#4F46E5;
+  --primary-2:#8B5CF6;
+  --accent-2:#06B6D4;
+  --amber:#F59E0B;
+  --rose:#E11D48;
+  --ink:#161327;
+  --ink-soft:#63647E;
+  --line:#E3E4F3;
+  --green:#0EA96B;
+  --grad-primary: linear-gradient(135deg,var(--primary-1),var(--primary-2));
+  --grad-cool: linear-gradient(135deg,var(--primary-1),var(--accent-2));
+  --grad-warm: linear-gradient(135deg,var(--amber),var(--rose));
+  --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  --sans: "Pretendard", "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  --display: "Black Han Sans", "Noto Sans KR", var(--sans);
+  --tech: "Space Grotesk", var(--sans);
+  /* 이전 버전 호환용 별칭 (JS/기타 CSS에서 참조) */
+  --navy:#181B3A; --navy-dark:#0B1020; --seal:#E11D48; --seal-deep:#B0123A;
+  --gold:#F59E0B; --gold-light:#FCD34D; --accent:var(--primary-1); --serif:var(--display);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:var(--sans);height:100%;overflow:hidden;}
+body{
+  background-color:var(--bg);
+  background-image:
+    radial-gradient(circle at 8% 4%, rgba(79,70,229,.10), transparent 40%),
+    radial-gradient(circle at 92% 14%, rgba(6,182,212,.09), transparent 38%),
+    radial-gradient(circle at 88% 96%, rgba(139,92,246,.10), transparent 42%);
+  background-attachment:fixed;
+}
+button{font-family:var(--sans);}
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-thumb{background:linear-gradient(var(--primary-1),var(--accent-2));border-radius:6px;}
+
+/* ================= APP SHELL ================= */
+#app{display:flex;flex-direction:column;height:100vh;}
+
+/* ---------- Top bar ---------- */
+header.top{
+  flex:none;height:4px;background:linear-gradient(90deg,var(--primary-1),var(--accent-2) 50%,var(--primary-2));
+}
+.topbar{
+  flex:none;height:60px;display:flex;align-items:center;gap:14px;padding:0 20px;
+  background:linear-gradient(120deg,var(--ink-bg) 0%, var(--ink-bg-2) 100%);color:#fff;
+  border-bottom:1px solid rgba(139,92,246,.25);
+  box-shadow:0 2px 18px rgba(11,16,32,.35);
+}
+.tb-logo{font-family:var(--display);font-weight:400;font-size:19px;letter-spacing:.01em;white-space:nowrap;}
+.tb-logo span{
+  background:var(--grad-cool);-webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.seal-stamp{
+  flex:none;width:32px;height:32px;border-radius:50%;border:none;
+  background:var(--grad-primary);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--tech);font-weight:700;font-size:11px;letter-spacing:-.02em;
+  box-shadow:0 0 0 3px rgba(79,70,229,.18), 0 0 16px rgba(139,92,246,.55);
+}
+.tb-div{width:1px;height:20px;background:rgba(255,255,255,.2);flex:none;}
+.tb-tagline{font-size:10.5px;color:#B7BBE0;line-height:1.4;white-space:nowrap;}
+.tb-chip{
+  background:rgba(139,92,246,.16);border:1px solid rgba(139,92,246,.4);border-radius:8px;
+  padding:5px 10px;font-size:10.5px;color:#E5E1FF;white-space:nowrap;font-weight:600;
+}
+.tb-spacer{flex:1;}
+.tb-user{
+  display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.16);border-radius:8px;padding:5px 11px;font-size:11.5px;
+  white-space:nowrap;max-width:360px;overflow:hidden;text-overflow:ellipsis;
+}
+.tb-user b{
+  color:#fff;font-weight:800;
+}
+.edit-btn{
+  flex:none;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.24);color:#fff;
+  border-radius:6px;padding:6px 10px;font:700 10.5px var(--sans);cursor:pointer;white-space:nowrap;
+  transition:background .15s, border-color .15s;
+}
+.edit-btn:hover{background:var(--grad-primary);border-color:transparent;}
+.tb-city-logo{
+  flex:none;background:#fff;border-radius:8px;padding:5px 10px;display:flex;align-items:center;
+  box-shadow:0 2px 8px rgba(0,0,0,.18);
+}
+.tb-city-logo img{height:22px;width:auto;display:block;}
+
+/* ---------- Body: sidebar / center / right ---------- */
+.body-row{flex:1;display:flex;min-height:0;}
+
+/* SIDEBAR */
+aside.sidebar{
+  flex:0 0 340px;width:340px;background:#F7F8FE;border-right:1px solid var(--line);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.sb-scroll{flex:1;overflow-y:auto;padding:12px 12px 18px;}
+.sb-section{margin-bottom:16px;}
+.sb-head{
+  display:flex;align-items:center;gap:7px;justify-content:space-between;
+  font-family:var(--display);font-weight:400;font-size:14px;color:var(--ink-bg);letter-spacing:.01em;
+  padding:2px 3px 9px;text-transform:none;
+}
+.sb-head-left{display:flex;align-items:center;gap:7px;}
+.num-badge{
+  display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;
+  border-radius:5px;background:var(--grad-primary);color:#fff;font-size:10.5px;font-family:var(--mono);
+  font-weight:700;flex:none;
+}
+.sb-head-btn{font-size:11.5px;font-weight:700;color:var(--primary-1);cursor:pointer;background:none;border:none;padding:2px 4px;text-transform:none;letter-spacing:0;}
+
+/* 업무 자료 담기 */
+.basket-box{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 13px;box-shadow:0 1px 3px rgba(16,35,63,.05);}
+.basket-box input[type=file]{
+  width:100%;padding:7px 8px;border:1px dashed var(--line);border-radius:6px;
+  background:#F7F8FE;font-size:12px;color:var(--ink-soft);
+}
+.basket-box .cat-row{margin-bottom:9px;}
+.basket-box select{width:100%;padding:8px 9px;border:1px solid var(--line);border-radius:6px;background:#F7F8FE;font-size:13px;font-weight:600;color:var(--ink);}
+.cat-label{font-family:var(--display);font-weight:400;font-size:12.5px;color:var(--ink-bg);letter-spacing:.01em;margin-bottom:6px;}
+.cat-target-hint{font-size:11px;color:var(--primary-1);margin-top:5px;font-weight:700;}
+.file-group-label{font-size:11px;font-weight:800;color:var(--navy);text-transform:uppercase;letter-spacing:.02em;padding:5px 2px 3px;}
+.file-row{
+  display:flex;justify-content:space-between;align-items:center;gap:6px;
+  background:#EEF0FC;border-radius:7px;padding:7px 9px;margin:3px 0 5px;font-size:12.5px;
+}
+.file-row .fname{color:var(--ink);flex:1;overflow-wrap:anywhere;}
+.file-row .fname .untyped{color:#B2AA98;margin-left:3px;font-size:10.5px;}
+.file-row button{border:none;background:none;color:var(--seal);cursor:pointer;font-weight:700;font-size:11.5px;flex:none;}
+.file-empty-mini{color:#B2AA98;font-size:12px;text-align:center;padding:8px 4px;}
+.mask-note{
+  display:none;margin-top:9px;font-size:11.5px;background:#FBEAE6;border:1px solid #E7BEB4;
+  color:var(--seal-deep);padding:8px 10px;border-radius:8px;line-height:1.5;
+}
+.mask-note.show{display:block;}
+
+/* 트리 노드 (담당세부사업 / 기타업무) */
+.tree-children{margin-left:2px;}
+.tree-node{
+  display:flex;align-items:center;gap:7px;padding:8px 9px;border-radius:7px;cursor:pointer;
+  font-size:13.5px;font-weight:600;color:var(--ink);line-height:1.35;margin-bottom:2px;transition:background .12s;
+}
+.tree-node:hover{background:#EEF0FC;}
+.tree-node.active{background:#E4DEFC;box-shadow:inset 3px 0 0 var(--seal);font-weight:700;color:var(--navy-dark);}
+.tree-node .amt{font:600 11px var(--mono);color:#7A7DA0;flex:none;}
+.tree-node .badge2{font-weight:700;font-size:10px;flex:none;padding:2px 7px;border-radius:4px;}
+.tree-node .lbl{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.tree-node .tn-add, .tree-node .tn-del{
+  flex:none;width:19px;height:19px;border-radius:5px;border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:12.5px;color:#a7aeb8;
+  cursor:pointer;background:#fff;line-height:1;
+}
+.tree-node .tn-add:hover{border-color:var(--navy);color:var(--navy);}
+.tree-node .tn-del:hover{border-color:var(--seal);color:var(--seal);}
+.depth0{padding-left:8px;}
+.depth1{padding-left:24px;}
+.depth2{padding-left:40px;}
+.depth3{padding-left:56px;}
+.sb-empty-note{font-size:12px;color:#B2AA98;padding:6px 7px;line-height:1.6;}
+
+/* 아코디언 드롭 (사업진행현황 + 자료목록 — 각각 독립 스크롤되는 2단 구성) */
+.accordion-panel{
+  background:#fff;border:1px solid var(--line);border-radius:11px;margin:3px 4px 9px;overflow:hidden;
+  box-shadow:0 2px 8px rgba(16,35,63,.06);
+}
+.acc-block{padding:12px 13px;max-height:170px;overflow-y:auto;}
+.acc-block + .acc-block{border-top:1px solid var(--line);}
+.acc-label{font-family:var(--display);font-weight:400;font-size:12.5px;color:var(--ink-bg);letter-spacing:.01em;margin-bottom:8px;position:sticky;top:0;background:#fff;display:flex;align-items:center;gap:6px;}
+.acc-placeholder{font-size:12px;color:#7A7DA0;line-height:1.65;background:#F7F8FE;border:1px dashed var(--line);border-radius:7px;padding:10px 11px;}
+.acc-genned{font:700 9.5px var(--sans);color:#2f7a4a;background:#e2f0e8;border-radius:4px;padding:2px 7px;text-transform:none;letter-spacing:0;}
+.acc-generated{animation:accReveal .4s ease;}
+@keyframes accReveal{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
+.pstep{display:flex;align-items:flex-start;gap:9px;}
+.pstep .dotcol{display:flex;flex-direction:column;align-items:center;flex:none;width:14px;}
+.pstep .dotc{width:11px;height:11px;border-radius:50%;flex:none;margin-top:2px;}
+.pstep .linec{width:2px;flex:1;min-height:15px;background:#e6e8ec;}
+.pstep .pbody{padding-bottom:8px;min-width:0;}
+.pstep .plabel{font-size:12.5px;font-weight:700;}
+.pstep .pdate{font-size:11px;color:#7A7DA0;}
+
+.sb-foot{flex:none;padding:9px 13px;border-top:1px solid var(--line);font:600 10.5px var(--mono);color:#a7aeb8;line-height:1.6;}
+
+/* ④ 메시지 채팅 — 사이드바에 내장되는 컴팩트 챗 카드 */
+
+.tabbar{
+  flex:none;display:flex;align-items:stretch;gap:0;padding:0 4px;background:#E9EAF7;
+  border-bottom:1px solid var(--line);height:32px;overflow-x:auto;
+}
+.tab{
+  position:relative;display:flex;align-items:center;gap:4px;padding:0 9px;font-size:10px;font-weight:600;
+  color:#787AA0;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:color .12s;
+}
+.tab.active{color:var(--ink-bg);font-weight:800;background:#fff;}
+.tab.active::after{
+  content:"";position:absolute;left:6px;right:6px;bottom:-1px;height:3px;border-radius:3px 3px 0 0;
+  background:var(--grad-primary);
+}
+.tab-gap{width:10px;flex:none;}
+.statusdot{width:6px;height:6px;border-radius:50%;flex:none;margin-left:2px;}
+
+.agent-titlebar{
+  position:relative;flex:none;display:flex;align-items:center;justify-content:space-between;gap:6px;
+  padding:9px 11px;border-bottom:1px solid var(--line);background:#fff;
+}
+.agent-title{display:flex;align-items:center;gap:6px;font-family:var(--display);font-weight:400;font-size:13px;color:var(--ink-bg);white-space:nowrap;}
+.num-badge-lg{width:17px;height:17px;font-size:9px;border-radius:5px;}
+.agent-title-right{display:flex;align-items:center;gap:5px;}
+.ai-model-label{
+  font:800 11px var(--sans);color:var(--primary-1);background:#EEF0FC;border:1px solid #D9DAF6;
+  border-radius:6px;padding:6px 10px;white-space:nowrap;
+}
+.scope-row{flex:none;display:flex;align-items:stretch;background:#E9EAF7;border-bottom:1px solid var(--line);}
+.tab-fixed-label{
+  flex:none;display:flex;align-items:center;padding:0 8px;font:800 9px var(--sans);
+  color:#fff;background:var(--grad-primary);border-right:1px solid var(--line);white-space:nowrap;
+}
+.featbar{
+  position:relative;flex:none;display:flex;align-items:center;gap:9px;padding:8px 16px;
+  border-bottom:1px solid var(--line);background:#fff;flex-wrap:wrap;
+}
+.feat-btn{
+  display:flex;align-items:center;gap:4px;background:#EEF0FC;border:1px solid var(--line);border-radius:6px;
+  padding:5px 8px;font:700 10.5px var(--sans);color:var(--navy-dark);cursor:pointer;white-space:nowrap;
+  transition:border-color .12s;
+}
+.feat-btn:hover{border-color:var(--gold);}
+.scope-chip{
+  font-weight:700;font-size:11px;color:var(--gold);background:#FBF3E1;border:1px solid #E9D5A6;
+  border-radius:5px;padding:5px 10px;white-space:nowrap;max-width:280px;overflow:hidden;text-overflow:ellipsis;
+}
+.scope-status{font-weight:700;font-size:10px;padding:2px 6px;border-radius:3px;}
+.feat-spacer{flex:1;}
+.model-chip{
+  display:flex;align-items:center;gap:4px;background:#fff;border:1px solid var(--line);border-radius:6px;
+  padding:5px 8px;font:600 10px var(--sans);color:#3a414c;cursor:pointer;white-space:nowrap;
+  transition:border-color .12s;
+}
+.model-chip:hover{border-color:var(--gold);}
+.model-chip .gdot{width:6px;height:6px;border-radius:50%;background:var(--green);}
+.feat-dropdown{
+  position:absolute;top:42px;left:0;width:240px;background:#fff;border:1px solid var(--line);
+  border-radius:10px;box-shadow:0 16px 44px rgba(16,35,63,.2);padding:6px;z-index:60;display:none;
+}
+.feat-dropdown.open{display:block;}
+.feat-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:6px;cursor:pointer;}
+.feat-item:hover{background:#EEF0FC;}
+.feat-item.active{background:#FBF3E1;}
+.feat-item .ic{width:26px;height:26px;flex:none;border-radius:5px;background:#EEF0FC;display:flex;align-items:center;justify-content:center;font-size:13px;}
+.feat-item .fname{font-weight:700;font-size:12.5px;color:var(--ink);}
+.feat-item .fdesc{font-size:10.5px;color:#98a0ab;}
+.feat-item .fcheck{margin-left:auto;color:var(--gold);font-weight:800;}
+.model-dropdown{
+  position:absolute;top:42px;right:0;width:190px;background:#fff;border:1px solid var(--line);
+  border-radius:10px;box-shadow:0 16px 44px rgba(16,35,63,.2);padding:8px;z-index:60;display:none;
+  max-height:280px;overflow-y:auto;
+}
+.model-dropdown.open{display:block;}
+.model-dropdown .mhint{font:700 9.5px var(--mono);color:#98a0ab;padding:2px 6px 7px;}
+.model-item{padding:7px 9px;border-radius:5px;font-size:11.5px;cursor:pointer;display:flex;justify-content:space-between;}
+.model-item:hover{background:#EEF0FC;}
+.model-item.sel{background:#FBF3E1;font-weight:700;color:var(--gold);}
+
+.center-scroll{flex:1;min-height:0;overflow-y:auto;padding:16px 18px;background:#fff;}
+.center-inner{max-width:100%;margin:0;}
+
+.chat-scopetag{
+  align-self:center;text-align:center;font:600 9.5px var(--mono);color:#787AA0;
+  background:#E9EAF7;padding:4px 9px;border-radius:4px;display:inline-block;margin:0 auto 10px;
+}
+.chat-scopetag-wrap{display:flex;justify-content:center;}
+
+.chat-log{display:flex;flex-direction:column;gap:9px;}
+.chat-msg{max-width:92%;padding:9px 11px;border-radius:11px;font-size:12px;line-height:1.65;white-space:pre-wrap;animation:msgIn .25s ease;}
+@keyframes msgIn{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);}}
+.chat-msg.user{align-self:flex-end;background:var(--grad-primary);color:#fff;border-bottom-right-radius:3px;box-shadow:0 4px 14px rgba(79,70,229,.28);}
+.chat-msg.ai{align-self:flex-start;background:#fff;border:1px solid var(--line);color:var(--ink);border-bottom-left-radius:3px;box-shadow:0 2px 8px rgba(16,35,63,.05);}
+.chat-msg.ai .note{display:block;margin-top:6px;font-size:9.5px;color:#9799B8;}
+.chat-empty{color:#B2AA98;font-size:11px;text-align:center;padding:22px 8px;}
+.chat-msg.thinking{display:flex;align-items:center;gap:5px;padding:11px 14px;}
+.think-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:thinkBounce 1.1s infinite ease-in-out;}
+.think-dot:nth-child(2){animation-delay:.15s;}
+.think-dot:nth-child(3){animation-delay:.3s;}
+@keyframes thinkBounce{0%,60%,100%{transform:translateY(0);opacity:.4;}30%{transform:translateY(-4px);opacity:1;}}
+
+.readybox{
+  max-width:520px;margin:60px auto;text-align:center;background:#fff;border:1px solid var(--line);
+  border-radius:14px;padding:32px 26px;box-shadow:0 6px 22px rgba(16,35,63,.07);
+}
+.readybox .ic{font-size:34px;margin-bottom:10px;}
+.readybox h3{margin:0 0 6px;color:var(--navy-dark);font-size:16px;font-family:var(--serif);font-weight:700;}
+.readybox p{margin:0;color:var(--ink-soft);font-size:11.5px;line-height:1.7;}
+.readybox .soon{
+  display:inline-block;margin-top:12px;font:700 10px var(--mono);color:var(--seal-deep);
+  background:#FBEAE6;padding:3px 10px;border-radius:20px;
+}
+
+.inputbar{flex:none;padding:8px 12px 10px;border-top:1px solid var(--line);background:#fff;}
+.inputbar-inner{max-width:100%;margin:0;}
+.chips-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+.chip-btn{
+  border:1px solid var(--line);background:#F7F8FE;border-radius:20px;padding:5px 11px;
+  font-size:10.5px;color:var(--ink-soft);cursor:pointer;
+}
+.chip-btn:hover{border-color:var(--navy);color:var(--navy);}
+.chat-inputrow{border:1.5px solid var(--line);border-radius:10px;padding:7px 9px;background:#fff;transition:border-color .15s;}
+.chat-inputrow:focus-within{border-color:var(--gold);}
+.chat-inputrow textarea{
+  width:100%;border:none;outline:none;resize:none;font:400 12px var(--sans);color:var(--ink);
+  background:transparent;line-height:1.55;min-height:20px;max-height:120px;overflow-y:auto;display:block;
+}
+.inputbar-toolrow{display:flex;align-items:center;gap:5px;margin-top:6px;}
+.tool-chip{
+  font-size:9.5px;font-weight:500;color:#5b636e;background:#EEF0FC;border:1px solid var(--line);
+  border-radius:5px;padding:3px 7px;
+}
+.autogrow-tag{font:600 9px var(--mono);color:var(--gold);}
+.tb-spacer2{flex:1;}
+.sendBtn{
+  flex:none;width:28px;height:28px;border:none;border-radius:8px;background:var(--grad-primary);color:#fff;
+  font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:transform .15s, box-shadow .15s;box-shadow:0 4px 14px rgba(79,70,229,.4);
+}
+.sendBtn:hover{transform:translateY(-1px) scale(1.03);box-shadow:0 6px 18px rgba(139,92,246,.5);}
+.disclaimer{text-align:center;font-size:8.5px;color:#a7aeb8;margin-top:6px;line-height:1.4;}
+
+/* 가운데(보고서 변환): 남는 공간을 항상 채우는 유연한 컬럼 */
+/* 가운데(AI 업무비서): 화면의 주인공 — 남는 폭을 모두 차지 */
+main.center{
+  flex:1 1 0;min-width:340px;display:flex;flex-direction:column;overflow:hidden;
+  padding:12px;background:transparent;
+}
+.center-card{
+  flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;
+  background:#fff;border:1px solid var(--line);border-radius:12px;
+  box-shadow:0 2px 10px rgba(16,35,63,.06);
+}
+/* 오른쪽(문서 생성): 드래그로 폭 조절 가능한 고정폭 컬럼 */
+.report{
+  flex:0 0 460px;width:460px;min-width:340px;max-width:720px;display:flex;flex-direction:column;overflow:hidden;
+  border-left:1px solid var(--line);background:#E9EAF7;
+}
+.effect-bar{
+  flex:none;padding:9px 22px;font-size:10.5px;line-height:1.6;color:#0d7a52;
+  background:rgba(14,169,107,.09);border-top:1px solid rgba(14,169,107,.25);
+}
+.effect-bar b{color:#0a6042;font-size:11.5px;}
+
+/* 컬럼 사이 드래그 리사이저 */
+.col-resizer{
+  flex:none;width:7px;margin:0 -3px;cursor:col-resize;position:relative;z-index:20;background:transparent;
+}
+.col-resizer::after{
+  content:"";position:absolute;top:0;bottom:0;left:3px;width:1px;background:var(--line);transition:background .12s,width .12s,left .12s;
+}
+.col-resizer:hover::after,.col-resizer.dragging::after{
+  left:2px;width:3px;border-radius:2px;background:var(--grad-primary);
+}
+
+.report-top-block{flex:1 1 auto;display:flex;flex-direction:column;min-height:0;background:#fff;}
+.report-head{flex:none;padding:16px 22px 13px;border-bottom:1px solid var(--line);}
+.report-head-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;}
+.report-title{font-family:var(--display);font-weight:400;font-size:17px;color:var(--ink-bg);display:flex;align-items:center;gap:7px;white-space:nowrap;}
+.report-tag{font:700 9px var(--mono);color:var(--primary-1);background:#EEF0FC;border-radius:3px;padding:2px 6px;white-space:nowrap;}
+.rbtn-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:7px;}
+.rbtn{
+  border:1px solid var(--line);background:#F7F8FE;border-radius:8px;padding:11px 5px;cursor:pointer;
+  text-align:center;font-size:11px;font-weight:600;color:var(--ink-soft);transition:border-color .12s, transform .12s, box-shadow .12s;
+}
+.rbtn:hover{border-color:var(--primary-1);transform:translateY(-1px);box-shadow:0 4px 10px rgba(79,70,229,.16);}
+.rbtn.active{border-color:transparent;background:var(--grad-primary);color:#fff;font-weight:700;box-shadow:0 4px 14px rgba(79,70,229,.4);}
+
+.report-body-scroll{flex:1;overflow-y:auto;background:#E9EAF7;padding:22px 22px 30px;}
+.report-body{
+  max-width:640px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:16px;
+  padding:32px 36px;min-height:100%;box-shadow:0 12px 36px rgba(16,35,63,.09);
+}
+.doc-empty{color:#AFA898;font-size:12px;text-align:center;padding:50px 10px;line-height:1.8;}
+.doc-title-simple{
+  position:relative;font-family:var(--display);font-weight:400;font-size:20px;color:var(--ink-bg);
+  margin-bottom:15px;padding-bottom:12px;border-bottom:2px solid transparent;
+  background-image:linear-gradient(#fff,#fff),var(--grad-primary);
+  background-size:100% 100%, 100% 2px;background-repeat:no-repeat;background-position:0 0, 0 100%;
+}
+.doc-title-simple::after{
+  content:"AI";position:absolute;right:2px;top:-10px;font-family:var(--tech);font-weight:700;font-size:26px;
+  color:var(--primary-1);opacity:.12;letter-spacing:2px;pointer-events:none;
+}
+pre.doc-body{white-space:pre-wrap;word-break:keep-all;font-family:var(--sans);font-size:12px;line-height:1.9;color:var(--ink);margin:0;}
+.doc-foot{margin-top:18px;padding-top:9px;border-top:1px solid var(--line);font-size:8.5px;color:#B2AA98;font-family:var(--mono);}
+
+.report-foot{flex:none;padding:13px 22px 16px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:7px;background:#fff;}
+.rf-row{display:flex;gap:7px;}
+.rf-btn{flex:1;border:1px solid var(--line);background:#fff;border-radius:7px;padding:9px 0;font:600 10.5px var(--sans);color:var(--ink-soft);cursor:not-allowed;opacity:.6;}
+.rf-save{flex:1;border:none;border-radius:7px;padding:9px 0;font:700 11px var(--sans);color:#fff;background:var(--grad-primary);cursor:pointer;transition:transform .15s, box-shadow .15s;box-shadow:0 4px 12px rgba(79,70,229,.3);}
+.rf-save:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(139,92,246,.4);}
+.rf-save:disabled{background:#C7C9E6;cursor:not-allowed;box-shadow:none;transform:none;}
+
+/* 로드맵 블록 */
+.roadmap-block{flex:0 0 auto;max-height:210px;overflow-y:auto;padding:14px 22px 18px;border-top:2px solid var(--line);background:#F7F8FE;}
+.roadmap-title{font-size:11.5px;font-weight:800;color:var(--navy);margin-bottom:9px;display:flex;align-items:center;gap:6px;}
+.constraint-box{
+  background:#EEF0FC;border:1px solid #D9DAF6;border-radius:11px;padding:11px 13px;font-size:10px;
+  color:#5C5540;line-height:1.65;margin-bottom:10px;
+}
+.constraint-box b{color:#3D3826;}
+.kw{color:var(--seal);font-weight:800;}
+.tier-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.tier-item{background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 10px;margin-bottom:0;}
+.tier-item h3{margin:0 0 3px;font-size:10.5px;color:var(--navy);}
+.tier-item h3 .kw{color:var(--seal);}
+.tier-item p{margin:0;font-size:9.5px;color:var(--ink-soft);line-height:1.5;}
+
+/* ================= REGISTRATION MODAL ================= */
+#regModal{display:block;}
+.reg-card{
+  width:100%;background:#fff;border:1px solid var(--line);border-radius:10px;
+  box-shadow:0 2px 10px rgba(16,35,63,.06);overflow:hidden;
+}
+.reg-top{height:4px;background:var(--grad-primary);}
+.reg-head{padding:13px 14px 10px;border-bottom:1px solid #eef0f3;}
+.reg-head-title-row{display:flex;align-items:center;justify-content:space-between;gap:14px;}
+.reg-head .rt{font-family:var(--display);font-weight:400;font-size:13.5px;color:var(--ink-bg);}
+.reg-head-logo{height:20px;width:auto;flex:none;}
+.reg-head .rs{font-size:10.5px;color:#98a0ab;margin-top:2px;}
+.reg-body{padding:13px 14px;display:flex;flex-direction:column;gap:12px;}
+.reg-sec-label{font-weight:700;font-size:11.5px;color:var(--ink-soft);margin-bottom:7px;}
+.reg-sec-label .sub{font-weight:500;color:#a7aeb8;}
+.reg-body select, .reg-body input[type=text]{
+  width:100%;border:1px solid var(--line);border-radius:7px;padding:9px 11px;font:500 13px var(--sans);
+  color:var(--ink);background:#fff;
+}
+.reg-body select:disabled, .reg-body input[type=text]:disabled{background:#EEF0FC;color:#6B6558;font-weight:600;}
+.reg-hint{font-size:11px;color:var(--seal-deep);line-height:1.6;margin-top:8px;font-weight:700;background:#FBEAE6;border:1px solid #E7BEB4;border-radius:7px;padding:8px 10px;}
+.reg-hint b{color:var(--seal-deep);}
+.two-col-reg{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.budget-drop{
+  border:1.5px dashed var(--line);border-radius:7px;padding:18px;text-align:center;cursor:pointer;background:#F7F8FE;
+}
+.budget-drop .bi{font-size:18px;color:#aab0b8;}
+.budget-drop .bt{font-weight:700;font-size:12px;color:var(--ink-soft);margin-top:4px;}
+.budget-drop .bh{font:600 9.5px var(--mono);color:#a7aeb8;margin-top:4px;}
+.budget-error{margin-top:8px;font-size:10.5px;color:var(--seal-deep);background:#fbeae6;border:1px solid #e7beb4;border-radius:7px;padding:8px 10px;line-height:1.6;}
+.budget-error b{color:var(--seal-deep);}
+.budget-ok{border:1px solid #cfe3d6;background:#f0f8f3;border-radius:7px;padding:11px 12px;}
+.budget-ok .bok{font:700 10.5px var(--sans);color:#2f7a4a;margin-bottom:7px;}
+.budget-ok .bitem{display:flex;align-items:center;gap:7px;font-size:11px;color:#3a414c;margin-bottom:4px;}
+.budget-ok .bitem .d{width:5px;height:5px;background:var(--gold);flex:none;border-radius:1px;}
+.budget-ok .bitem .amt{margin-left:auto;font:600 9.5px var(--mono);color:#8a9099;}
+.reg-foot{padding:10px 14px 14px;display:flex;gap:8px;align-items:center;}
+.reg-foot .note{font:600 9.5px var(--mono);color:#a7aeb8;line-height:1.5;flex:1;}
+.reg-complete-btn{flex:none;border:none;border-radius:7px;padding:11px 17px;font:700 12.5px var(--sans);color:#fff;background:#c8cdd5;cursor:not-allowed;transition:transform .15s, box-shadow .15s;}
+.reg-complete-btn.ok{background:var(--grad-primary);cursor:pointer;box-shadow:0 4px 14px rgba(79,70,229,.35);}
+.reg-complete-btn.ok:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(139,92,246,.45);}
+#budgetInputHidden{display:none;}
+
+/* ================= 사용순서 안내 (코치마크) ================= */
+#coachLayer{position:fixed;inset:0;z-index:1400;pointer-events:none;display:none;}
+#coachLayer.on{display:block;}
+/* 대상 요소를 감싸는 맥동 테두리 */
+.coach-ring{
+  position:absolute;border-radius:12px;pointer-events:none;
+  border:2.5px solid var(--primary-1);
+  box-shadow:0 0 0 4px rgba(79,70,229,.18), 0 0 0 9999px rgba(8,20,34,.42);
+  animation:coachPulse 1.6s ease-in-out infinite;transition:all .32s cubic-bezier(.4,0,.2,1);
+}
+@keyframes coachPulse{
+  0%,100%{box-shadow:0 0 0 4px rgba(79,70,229,.18), 0 0 0 9999px rgba(8,20,34,.42);}
+  50%    {box-shadow:0 0 0 9px rgba(79,70,229,.30), 0 0 0 9999px rgba(8,20,34,.42);}
+}
+/* 튀는 화살표 */
+.coach-arrow{
+  position:absolute;font-size:30px;line-height:1;pointer-events:none;
+  color:var(--primary-2);text-shadow:0 3px 10px rgba(79,70,229,.5);
+  transition:all .32s cubic-bezier(.4,0,.2,1);
+}
+.coach-arrow.down{animation:coachBounceY 1s ease-in-out infinite;}
+.coach-arrow.up{animation:coachBounceYUp 1s ease-in-out infinite;}
+.coach-arrow.right{animation:coachBounceX 1s ease-in-out infinite;}
+@keyframes coachBounceY{0%,100%{transform:translateY(0);}50%{transform:translateY(9px);}}
+@keyframes coachBounceYUp{0%,100%{transform:translateY(0);}50%{transform:translateY(-9px);}}
+@keyframes coachBounceX{0%,100%{transform:translateX(0);}50%{transform:translateX(9px);}}
+/* 설명 카드 */
+.coach-card{
+  position:absolute;width:290px;background:#fff;border-radius:12px;pointer-events:auto;
+  box-shadow:0 18px 50px rgba(8,20,34,.4);overflow:hidden;
+  transition:all .32s cubic-bezier(.4,0,.2,1);
+}
+.coach-card-top{height:4px;background:var(--grad-primary);}
+.coach-card-body{padding:14px 16px 12px;}
+.coach-step-no{
+  display:inline-block;font:800 9.5px var(--mono);color:#fff;background:var(--grad-primary);
+  border-radius:20px;padding:3px 9px;margin-bottom:8px;
+}
+.coach-title{font-family:var(--display);font-size:14.5px;color:var(--ink-bg);margin-bottom:6px;line-height:1.35;}
+.coach-desc{font-size:11.5px;color:var(--ink-soft);line-height:1.65;}
+.coach-desc b{color:var(--primary-1);}
+.coach-card-foot{
+  display:flex;align-items:center;gap:7px;padding:10px 16px 14px;
+}
+.coach-dots{flex:1;display:flex;gap:4px;align-items:center;}
+.coach-dot{width:6px;height:6px;border-radius:50%;background:#dcdef0;transition:all .2s;}
+.coach-dot.on{width:18px;border-radius:3px;background:var(--grad-primary);}
+.coach-btn{
+  border:1px solid var(--line);background:#fff;color:var(--ink-soft);border-radius:7px;
+  padding:6px 11px;font:700 11px var(--sans);cursor:pointer;white-space:nowrap;
+}
+.coach-btn:hover{border-color:var(--primary-1);color:var(--primary-1);}
+.coach-btn.main{border:none;background:var(--grad-primary);color:#fff;box-shadow:0 3px 10px rgba(79,70,229,.3);}
+.coach-skip{
+  border:none;background:none;color:#a7aeb8;font:600 10.5px var(--sans);cursor:pointer;padding:6px 4px;
+}
+.coach-skip:hover{color:var(--rose);}
+/* 상단바 도움말 버튼 */
+.help-btn{
+  flex:none;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);color:#fff;
+  border-radius:7px;padding:6px 10px;font:700 10.5px var(--sans);cursor:pointer;white-space:nowrap;
+}
+.help-btn:hover{background:rgba(255,255,255,.24);}
+
+/* ================= 데모 자료실 ================= */
+.demo-lib{border:1px solid var(--line);border-radius:9px;background:#fff;overflow:hidden;margin-bottom:9px;}
+.demo-lib-head{
+  display:flex;align-items:center;justify-content:space-between;gap:6px;
+  padding:8px 10px;background:linear-gradient(120deg,rgba(79,70,229,.07),rgba(6,182,212,.07));
+  border-bottom:1px solid var(--line);
+}
+.demo-lib-head .dlt{font:800 10.5px var(--sans);color:var(--primary-1);white-space:nowrap;}
+.demo-lib-head .dlt-sub{font-weight:600;color:var(--ink-soft);font-size:9.5px;margin-left:3px;}
+.demo-lib-head .dl-count{font:700 9.5px var(--mono);color:var(--ink-soft);white-space:nowrap;}
+.demo-lib-actions{display:flex;gap:5px;padding:7px 8px 4px;}
+.dl-btn{
+  flex:1;border:1px solid var(--line);background:#fff;color:var(--ink-soft);
+  border-radius:6px;padding:5px 8px;font:700 10px var(--sans);cursor:pointer;
+}
+.dl-btn:hover{border-color:var(--primary-1);color:var(--primary-1);}
+.dl-btn.primary{border-color:transparent;background:var(--grad-primary);color:#fff;}
+.demo-lib-list{max-height:224px;overflow-y:auto;padding:2px 6px 7px;}
+.demo-item{
+  display:flex;align-items:center;gap:7px;padding:6px 7px;border-radius:7px;cursor:pointer;
+  border:1px solid transparent;transition:background .12s,border-color .12s;
+}
+.demo-item:hover{background:#F7F8FE;border-color:var(--line);}
+.demo-item.on{background:rgba(14,169,107,.08);border-color:rgba(14,169,107,.35);}
+.demo-item .dchk{
+  flex:none;width:16px;height:16px;border-radius:5px;border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font:800 10px var(--sans);
+  color:#b9bdc9;background:#fff;
+}
+.demo-item.on .dchk{background:var(--green);border-color:var(--green);color:#fff;}
+.demo-item .dmain{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;}
+.demo-item .dname{
+  font:600 10px var(--mono);color:var(--ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.demo-item .ddesc{font-size:9.5px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.demo-item .dkind{
+  flex:none;font:700 8.5px var(--sans);color:var(--primary-1);
+  background:rgba(79,70,229,.1);border-radius:4px;padding:2px 5px;
+}
+.typed-box{
+  border:1px solid var(--line);border-radius:9px;background:#fff;padding:9px 10px 8px;margin-bottom:9px;
+}
+.typed-head{display:flex;align-items:baseline;gap:5px;margin-bottom:7px;flex-wrap:wrap;}
+.typed-head .th-t{font:800 10.5px var(--sans);color:var(--primary-1);white-space:nowrap;}
+.typed-head .th-sub{font-size:9.5px;color:var(--ink-soft);line-height:1.4;}
+.typed-box input[type=text]{
+  width:100%;border:1px solid var(--line);border-radius:6px;padding:6px 8px;
+  font:600 11px var(--sans);color:var(--ink);background:#fff;margin-bottom:6px;
+}
+.typed-box textarea{
+  width:100%;border:1px solid var(--line);border-radius:6px;padding:7px 8px;
+  font:500 11px var(--sans);color:var(--ink);background:#fff;resize:vertical;
+  min-height:64px;max-height:200px;line-height:1.6;
+}
+.typed-box input:focus,.typed-box textarea:focus{
+  outline:none;border-color:var(--primary-1);box-shadow:0 0 0 3px rgba(79,70,229,.12);
+}
+.typed-foot{display:flex;align-items:center;gap:7px;margin-top:6px;}
+.typed-count{flex:1;font:600 9.5px var(--mono);color:#a7aeb8;}
+.typed-add{
+  flex:none;border:none;border-radius:6px;padding:6px 11px;
+  font:700 10.5px var(--sans);color:#fff;background:#c8cdd5;cursor:not-allowed;
+}
+.typed-add.ok{background:var(--grad-primary);cursor:pointer;box-shadow:0 3px 10px rgba(79,70,229,.28);}
+.typed-add.ok:hover{transform:translateY(-1px);}
+.typed-foot{flex-wrap:wrap;}
+.typed-ai{
+  flex:none;border:1px solid var(--line);border-radius:6px;padding:6px 10px;
+  font:700 10.5px var(--sans);color:#b9bdc9;background:#F7F8FE;cursor:not-allowed;
+}
+.typed-ai.ok{
+  border-color:transparent;color:#fff;background:var(--grad-cool);cursor:pointer;
+  box-shadow:0 3px 10px rgba(6,182,212,.3);
+}
+.typed-ai.ok:hover{transform:translateY(-1px);}
+.typed-ai.busy{border-color:transparent;background:#c8cdd5;color:#fff;cursor:wait;}
+.typed-hint{
+  margin-top:6px;font-size:9.5px;line-height:1.55;color:#a7aeb8;
+  background:#F7F8FE;border-radius:6px;padding:6px 8px;
+}
+.typed-hint b{color:var(--primary-1);}
+.typed-hint.err{background:#FBEAE6;color:#B0123A;font-weight:700;}
+.own-upload{margin-bottom:6px;}
+.own-upload .ou-label{font:600 9.5px var(--mono);color:#a7aeb8;margin-bottom:4px;line-height:1.4;}
+
+/* ================= 예시 질문 칩 ================= */
+.qchip-wrap{padding:10px 4px 4px;}
+.qchip-title{font:800 10px var(--sans);color:var(--ink-soft);margin-bottom:7px;}
+.qchip{
+  display:block;width:100%;text-align:left;margin-bottom:5px;
+  border:1px solid var(--line);background:#fff;border-radius:8px;
+  padding:7px 9px;font:600 11px var(--sans);color:var(--ink);cursor:pointer;line-height:1.45;
+  transition:border-color .12s,box-shadow .12s;
+}
+.qchip:hover{border-color:var(--primary-1);box-shadow:0 2px 8px rgba(79,70,229,.14);}
+.qchip.locked{color:#a7aeb8;cursor:not-allowed;background:#FAFAFD;}
+.qchip.locked:hover{border-color:var(--line);box-shadow:none;}
+.qchip .qlock{font:700 9px var(--mono);color:#c0c4cf;margin-left:4px;}
+
+/* ================= 실시간 AI 연결 ================= */
+.live-btn{
+  flex:none;border:1px solid var(--line);background:#fff;color:var(--ink-soft);
+  border-radius:999px;padding:4px 9px;font:700 10px var(--sans);cursor:pointer;white-space:nowrap;
+  transition:all .15s;
+}
+.live-btn:hover{border-color:var(--primary-1);color:var(--primary-1);}
+.live-btn.on{
+  border-color:transparent;background:var(--grad-cool);color:#fff;
+  box-shadow:0 2px 8px rgba(6,182,212,.35);
+}
+#liveModal{
+  position:fixed;inset:0;z-index:1200;background:rgba(8,20,34,.62);display:none;
+  align-items:center;justify-content:center;padding:20px;
+}
+#liveModal.show{display:flex;}
+.live-card{width:480px;max-height:92vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 28px 80px rgba(0,0,0,.42);}
+.live-head{padding:18px 22px 13px;border-bottom:1px solid #eef0f3;}
+.live-head .lt{font-family:var(--display);font-size:16px;color:var(--ink-bg);letter-spacing:-.01em;}
+.live-head .ls{font-size:10.5px;color:#98a0ab;margin-top:4px;line-height:1.5;}
+.live-body{padding:16px 22px;display:flex;flex-direction:column;gap:14px;}
+.live-warn{
+  font-size:10.5px;line-height:1.65;color:#8A3A1E;background:#FFF4E8;
+  border:1px solid #F3D0AA;border-radius:8px;padding:10px 12px;
+}
+.live-warn b{color:#B0123A;}
+.live-field label{display:block;font:700 11px var(--sans);color:var(--ink-soft);margin-bottom:5px;}
+.live-field input{
+  width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 11px;
+  font:500 12.5px var(--mono);color:var(--ink);background:#fff;
+}
+.live-field input:focus{outline:none;border-color:var(--primary-1);box-shadow:0 0 0 3px rgba(79,70,229,.12);}
+.live-hint{font:600 9.5px var(--mono);color:#a7aeb8;margin-top:5px;line-height:1.5;}
+.live-status{font-size:11px;line-height:1.6;padding:0 2px;min-height:16px;}
+.live-status.err{color:#B0123A;font-weight:700;}
+.live-status.ok{color:var(--green);font-weight:700;}
+.live-foot{padding:12px 22px 18px;display:flex;gap:8px;align-items:center;}
+.live-foot button{border-radius:8px;padding:9px 14px;font:700 11.5px var(--sans);cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--ink-soft);}
+.live-foot .live-off{font-size:10.5px;padding:8px 10px;}
+.live-foot .live-off:hover{border-color:var(--rose);color:var(--rose);}
+.live-foot .live-save{border:none;background:var(--grad-primary);color:#fff;box-shadow:0 4px 14px rgba(79,70,229,.3);}
+.live-foot .live-save:hover{transform:translateY(-1px);}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <header class="top"></header>
+  <div class="topbar">
+    <div class="tb-logo">파주 Work<span>Potluck</span> <span style="font-family:var(--sans);font-weight:400;font-size:11.5px;color:#B9C7D6;">(워크포트락)</span></div>
+    <div class="seal-stamp" aria-hidden="true">AI</div>
+    <div class="tb-div"></div>
+    <div class="tb-chip">일잘러 AI (6조)</div>
+    <div class="tb-tagline">내 업무 바구니에 수시로 자료를 넣어두시고, 원하는 대로 꺼내 쓰세요</div>
+    <div class="tb-spacer"></div>
+    <div class="tb-user" id="tbUser">등록 전</div>
+    <button class="edit-btn" id="editRegBtn" style="display:none;">✎ 수정</button>
+    <button class="help-btn" id="helpBtn" title="사용순서 다시 보기">❔ 사용순서</button>
+    <div class="tb-city-logo">
+      <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAjcAAABiCAYAAACs9PLDAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAydpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDkuMC1jMDAxIDc5LmMwMjA0YjJkZWYsIDIwMjMvMDIvMDItMTI6MTQ6MjQgICAgICAgICI+IDxyZGY6UkRGIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyI+IDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSIiIHhtbG5zOnhtcE1NPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvbW0vIiB4bWxuczpzdFJlZj0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL1Jlc291cmNlUmVmIyIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjIyRUI1NzcyNzUwRDExRjE5QzUzRTQwMjM0OTE1N0E3IiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjIyRUI1NzcxNzUwRDExRjE5QzUzRTQwMjM0OTE1N0E3IiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCAyNC4zIChXaW5kb3dzKSI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkMxMkRGNTMxNzUwNjExRjE5MzgyOTREQjZCMEE3NzNBIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOkMxMkRGNTMyNzUwNjExRjE5MzgyOTREQjZCMEE3NzNBIi8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+NfXsawAAK7lJREFUeNrs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" alt="파주시 - 평화도 경제도 파주로!">
+    </div>
+  </div>
+
+  <div class="body-row">
+    <!-- ===================== SIDEBAR ===================== -->
+    <aside class="sidebar">
+      <div class="sb-scroll">
+
+        <!-- ⓪ 담당자 등록 (팝업이 아닌 화면 내 상시 표시) -->
+        <div class="sb-section" id="regSection">
+          <div class="sb-head"><span class="sb-head-left"><span class="num-badge">0</span>담당자 등록</span><button class="sb-head-btn" id="regToggleBtn">▾ 접기</button></div>
+          <div id="regModal">
+            <div class="reg-card">
+              <div class="reg-top"></div>
+              <div class="reg-head">
+                <div class="reg-head-title-row">
+                  <div class="rt"><span id="regHeadTitle">WorkPotluck 담당자 등록</span></div>
+                  <img class="reg-head-logo" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAjcAAABiCAYAAACs9PLDAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAydpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDkuMC1jMDAxIDc5LmMwMjA0YjJkZWYsIDIwMjMvMDIvMDItMTI6MTQ6MjQgICAgICAgICI+IDxyZGY6UkRGIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyI+IDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSIiIHhtbG5zOnhtcE1NPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvbW0vIiB4bWxuczpzdFJlZj0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL1Jlc291cmNlUmVmIyIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjIyRUI1NzcyNzUwRDExRjE5QzUzRTQwMjM0OTE1N0E3IiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjIyRUI1NzcxNzUwRDExRjE5QzUzRTQwMjM0OTE1N0E3IiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCAyNC4zIChXaW5kb3dzKSI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkMxMkRGNTMxNzUwNjExRjE5MzgyOTREQjZCMEE3NzNBIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOkMxMkRGNTMyNzUwNjExRjE5MzgyOTREQjZCMEE3NzNBIi8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+NfXsawAAK7lJREFUeNrsXQm4FMW1rr4uuGLcQBDcI3FDVCLREJckKs8QRZ/iggtq3Pf4NIIPBA2IEsG48IziCprgrrm4oxifC8iVRfHBdQERUdk0giLb7Xf+6RoYxu7pU9XVM9PD+f3KucxUV1dXV9f5+5xT53i+7yuBQCAQCASCWkGdDIFAIBAIBAIhNwKBQCAQCARCbgQCgUAgEAiE3AgEAoFAIBAIuREIBAKBQCDkRiAQCAQCgUDIjUAgEAiUan32CE9GQSAQciMQCAS1Qmza0Mcb9PkzGQ2BQMiNQCAQZJ3YdKGPSVQOoHK8jIhAUB1YV4ZAIBAIjEnNOvTRn0pvKnmTVHcq18voCASVhyfpFwQCgYCPVueM2Mbz1cP056EhP+825+5Tp8koCQSVhZilBAKBgIltzh15iK+8SRHEBjhRRkkgqDzELCUQCAQxaHH+Q16dr67xlerveaoO+m7PjyQ3/WTEBILKQsxSAoFAUAJbX/DwVnW+P0L5qgtWyzqsmT4cbfwogtN+zt2nvicjJxBUDmKWEggEgihic+HfD/CUN5FoTBffCzyHc3zGwyfRm/DoNt1l5ASCykLMUgKBQFBMai76BxQzlxN3uZEITG6d9HyQGZ/eCOnTJ2oDgkPfeepH6htsCe8joygQVA5ilhIIBIICbHXxqM1pYbyX/uwW8JbA/OTTfzBJBaYpFRCcYBENM0+JaUogqCDELCUQCAR5YnPJI/v5njdBeV63HK3Jm6Jyn55q8rxVpinfC2xSEeYpMU0JBEJuBAKBoMLE5tJHzyeS8ibxlJ0CwpInMt4aBCdPZor9b4og0YoFggpCzFICgWCtxhaXP7YJLYTD6c8TsBzmTU+BuUmvj3p3VGClypuh/DjzlJimBIIKQRyKBQLBWovN//j4Xp6nHiVq0m6Vk7AKYtjkzU45gqOdh/N6nJxjsb/aPOXlCJGXO7CA4MA0ZUVuvK4DoVXfLoNDOsev772s4DogY9o4aPdbandh0RhtRR+b1OC0/J6uda6+RsyBWrGwLKXr+qLoHm5PH8ckbHcJlXup7eVCbpjY9YZx+ynerofLG3t1miEjJhBkiNhc8URP4iXDiLRsmCMtXrALqk6TlzzByVEckBdPOxJ7eudUwHy0s7EK2z2VZNfUHlSmZHFYqSwr+PchVF5K0N4CKgOp/C3kt6epHFhDU/I7KrdQGaIF/6b0MVMp5WX8ukA67qQyKOS3o6gMtWwXDxo0rv2KiY2Qm3j8msrRMXVWUjlJhkogyAa2uPLJDYnEDCOR0TOvjVGa2KzyrfELCI4KHGzy2pmceUqLm9Dt4WpV9OJ2rc8esZelaeoXGRzaRhIy3xR9t3+C9pC/6yJq8+viH7RGaN8ampYvU+lJ1/p50dhlndhMoNKDrqsx4vdOlu3Ox8sDtTs2qoKQm9LYj1Hng8ZenZbIUAkE1Y8t//RUO2Igj5HE2NPPa2NUTjGjiYk2MRVoYQKyk5eqxuYpW9PUzzM4vOMdCq/rSXD1LfH7XlQ2qJFp+SCVM+l6V9bAHCjEc1T+k66rlHy0Ib8gu52p3emlKgm5SU5uJsgwlUabh6ZCdbx+hU6/bHaPPd4s6k9nw7k/kUozKq0rOIw/0HVM0/3fkj7aMo55j45ZSfU3o793NDjX9yowLXSogunTQNfwmYuGtr76mXWIdXT2PP8eX9uRiIysJBqyiL4LyIzn/45+OC7M/8bSPGVrmuqUwUf9bUfX8UwMscnq+IThXSpnhRCbrF/jTBD7UsTG6zpwC/r4qUXbl8URGyNys+sN486nj5YVHKxXGnt1+ldBf46gjwMMjv+QCpy0fsmsjxe6XRj1tqO+9LO4HgjcbanszayPlfIpGoPXCsbgIvrYqgom8jPUr3cjiM3G9PG6qpxTXH891vn+bKH7w50z55Jw/Tcddwf9fUEFx/gFKl3033+k0jum/mIqm+m/T6fyV+Z5RlC5msolVP5UwesFobnQFbEB5g06CgLknqjft7ji8XWJlPx3pP+NnXnK2DRFiz6emT2zrrmh62hrKTM4ZLBWyM0gEtQravAah9B1LY6pY6O1wYvXQ5yKLHJDQpTeeNRfqGxUwcGaVvRvLL5HMo6Do9E1VB5RgQ33OMf9+o0uXECldgGRgRdpXKfS37szF/oedMzrBfdkPfq4uYIaEQBO1GdFERuNDhUkNpOpDCj6bj/msfVUTiTh+p3hcWm+4Zlcw0Tqe5P+uyOjPuqeSsc8rElgJa8X2tD/oL7ML+dJiZLQ2uDvXOx/48A8ZWqaWhlzj+9S5iaLu6kMC/n+VSo/MWzrShX4iBSj+Bpt/Ibmk1DkOFIPMCDspQDif1mC4/HcnEOlwfL46REE12PKt7QBbfVoi+NeZNSxITcTIrRc1pqbn1WY2KiQycNZfEFsjiTh+7ImBJUWUPOodKb+NFJfNtbjyiF1B9Ex84q+36vCxOb/qBwc0i9lSSZcA29DPUlALrfoD449KU9sSNDjOdm7wnNnouE1TDCsPypPbCp83zDm3cpNbDb/ryfqiKv0LfS/USFOwpbmKSPTFC3eP9DHpBKanV0sLvE5andSUTttLIgN8CS19XFKwms8c4w+SnrP6fp/Rx8XJ2wGDs/3OCfa9b39UnOgXKAx2tHisK85ZiNLzdR4bkUuuak0KfiWykcFWguYczjqzkEFxAbmiB0rfB0XgdgYajQuiSAQlbwnePBOYhAbAKrpT13JICrNmXUHkICcZDlu8FUpVKnuSmWpLiZorni7HVZooR5LVohoIe4FxxTZoOtzSfQqMkTH7KTHOg4QcIsdz60JNPafl38V9073fH+3nB5G+99YmqeepHrfUP2edJyniVGSXVPFwuanzHtTjHEh39lqVj5m1rVp/+0yCW34AT5KZZ0EzfSnsfgfVdtIk4Dsn2LbbHIDp6AHQr4/QcV7rOMNrFCthZwtm8UcA3PHvwoXURKkvoVgH1Xw9xYR11AIkA2oArc0XZCpTGXUG214DX6Jh51zPLZlPp2GBorux2RORRJUUGFfmfSEJHChOZzMJDdh5iiTcWsouoYPTN9wqb9Y2N9gkpvudI4nmU13ZNZrMCTRhZoeriNx17yTc5axxVVPbehBUAXKGhW1PZxhnvqBiM1l84b1mNXyvIeGErUZRAToSG2esg7o50AgfE5CeI6jtt5hkgeQBput2uPTvt/UN8QQgtl5wwTN3Elj2k/VPmzmyDjGPdhZ2fmLsskvi9yQIHtUs1xVoD1BgKHTGIe/SMf31MdgkeXkXBlJx/RNuMDD8WhawTVA89MzqjL17RgtELe0GPB9VGCD7kPnWeFQSDVSe4sSCOlX82NfA7hJ8Ry8o8xReWdijvauIUlHNRF7kEkqHjYgNtz7Dm1KoyGJnpjgHJkGcZhLiYC0zVGUkO3hBuapO+bdcfIsfP3VnT1AZH7X8tyRh1DVwUSAkgT0S6oNGefwrXwcsx4com1cGVIlN9rJGc75mydo5nEqF9U6q9FRsn+e0hyxIU1fEqFkbzBI4ui5D/OttFBQ7Mqc8O86WOAnkWCPdTwiUtOCyhP0J8pulmOBtxTsMKmntrhvA8YahII+w5m4fdpCulpAZOFQ+riQWf36CHMUd8xdjBsiqnK2OM4xuC6TazB1Jm6k+osSnCOz2PrqZ0jYeX08bzXTWaWH0XFvAv8Z/blG0sw1kmvO9UK0hV/97ZSxPhZyT13b6pwRWzvoso2wGR+hWbExbXPJjQ1x+jAsYJ9DYQ1NARxdt03QzFgqJ3OdWjMOyMNNXMy3cmmEjDU3CTQPgKljoytyEyugiCSAoD2l3OVwwfb0+1Vgrit1Xq4fRNQ1cJ2JM09uiNjg4brXgJQMTDhvoPmZkqC/IGKXMqufTQThmxTIzYSEz8raFN9pCDGXjTRz0X40ysY8dcXc208KFcxEcFBrlAPhvL5+qXQhFLBLc+MUNSup+lNYjB1equuZ627kCzOVboW5s2ocNlrCT2h8OJsBOqU9P5JobtJSd89v7NVpVgliwHUmnhBDMCCE/jeG2Myk0k8FfjiHaaEVp4rvTm2fElOnPXPsGyqsgagG3EhlB0Y9LDgwR61IOGfhTLzUpqNEbDY1IGLD6TzPGrafljNxg+05sowWvf7ZjYjLcXWrlTaB5karcXLkRZuilP5t1S6ovPbGy1UaM+/2E0eWocsdlPkOyaaItdBGcH1UnLzSsWBMxZlYk8LHVbK4MXCi7kLX/2+19iAVgkr3Yz1Lkm5EbtZN+KDFodhnhKPtaSggIJuE9PFXSQU7tbu/1thsVGJBuJ7Kn4t8aF6mY5HA7TEqXUucexDVe4yO/SHid66jXRLzymfM3UzVrLUBAeUGzruOyML7+jg8OEMtxy2J0B7CJGIgzVdYtL+v4dy3cSbumPT5ygSxuaZ+SyIod+b9ZzBITTklja8Kohcrxu6pb+n/Z1WxsPm/iGBqqWlWSHhh3d4trfYNiQ1uHJIrdknQzFxNbL5SaxfSMh0hrIZp6gy/LOTGxqyinYn3MTlGBeYBm+3bazgTF/W9hSY2pXbdIDDd/aFsrVenpdTGqSrY0RW1gwbaJTgo/z0BOfmIzvXvBMdn2mxgYY66sYgAH2x56gbL/kK79wdm9TOJiH2bErnB3Bdn4njcXud5LZvU6rg0qz2GjcxTF8y/rfunZeqzS21IJ4dtFaOjMrcKLFPpxHVBoNNTExyP5/QIF3F1sgRtxtsrJXJjQ5qm0T0wWjNtzVLcN8JiZ+JNuMckjEsT6kxMbWJdQujmViWOfSCK2BQQHPhJxEVtPCnm4bcSsmuRM3ESc1THBOc1HjciNiC5dzOr30p9fdWybyxH+gJHX87LxMdrmzNxiz7PnuF53okgL3V5T2KtvclzHKZ5auT8W7s/VMauu3ImxsvpHilqVmyI0yTXvix0nQhBcXmCJtCfo4uDH64lwIuUaQygFUUvSuXWCDkhN1yfjwkJjkkSpC7KIRmOvr+NObY/8xxzbG6g3k3FSbmw1joTE1nAPTI2R1nMtbCH08aZGHmnOEk1kauqV4KhMTWriTNxMbHp++zuxE9u9wsUNXn/mRzBCZiNYuyemkyf55bxTXpz/YLoQiikrVmpuDMxjVdPFYSPsAXIO3ZFjVVrJ2y0hJN1dO00yK/x/LD1ueG+GSdxJk5CbiaGkIr1GZP9PTr/DOY54pyaW9I5t6T2FhR9vzeTEa+VzsREbGAu5JqjJqg1zVF5XB0yxtcw5q2xMzH1F+bHk5mL5WnU/veMNkGAmxV9vY0ycKTXbRiR6Fp3Jm557XObESl5Qvn+RiAxTTlVjJ8jNIbmqYW+73dbeMvx35ex+7ZJBt93JFwguLjPRkWdiXVaheEJm7mArvdxtfbCiZYw5N4ggG+7aiY3XJ8Ra2diOnYQfQwqIiiYtPWWb5ZImNnW4i0nChyVP3bPLHBMTmrdmfhmxn0CsNCeGrY7ir77ZwhhGOJaaFObiFtyF7P6YOoXdwGHqeMYy/FrSECia9aZuGW/59chzvIwcZV2Qc6nAq2MHxAcX0ftq6PPplUcZ3UdHdxvCf151NdDj5tZ5kuwITfvRsRjSdOZGBrM1mm1zzi/i7QK/Wjc/laJeUr9R5C6Nhldu99nzmPPsF1ogyabdsaY3JTRmdhWsGMgPgj5/lwH589fD/et2PYasCA9Tecp/G4AEZaXVA2bDYgsHK74Trl9uKH/U4xMfCdT04HUHNcatGvrM1ToSG9DomvWmZiIyhDf947M7XwKotQUJbhUq+LWlNg9RV95Pb4ecuwbFbiErDgT27SNRIsfOiAGLtIqDKO+9K/IHO06sFWGiQ2XoNqS9BWmB9loblJ3Jk646E8uToFAJAEOn50dCjfuW/GXlteAtot3+1xC14H7tSfj+IlZeyq0OYqrSgbrG2I4ZzmYZNDfHvRxLKMq5uKpXHOX1ga1tRxGOBOvNCAqH1H9fxuSm8w5E7e67oWrSHRcstruFEQcVlpjY2Ce+sPXNx/7ZIUuw5Uzsa0ATdOZeEPqV6ln73QSbpNjiIGLtAoI8XFJBadqJ5VdcLUrZXEmtiU3ab0RcjQOtnFKDmUQMhNnUk4/viiOc5NA45PXRuFYTnyAdzP4cJiYo3oWCHFX92sl8+EEAcFW/9uY50Z28okpPF9xc99mR17NaQVb/fnF833PuzHQ1OSdgf1VeaMMzFMXfD34mPsq9EYPraNN6oa3XWlWVOAMn5aA3kC/MIYBt+CjmPHB2CRNq/AKlR4VTquQZXKD3W7LU7pGK5OlDbmxscu7iEwMh8rWhuct1LTEAc7EXIe5/SxvCFfjU4z3oY2iMahJn4i0zFGG9+sDancJo6+Qg3cx3xBxH/5s0lHqw/OqyCatydRsLvEQZ+IArQe8dBaRkmGrgu8pHaPG14H5eOaplU2+OnvhTUffV8FLsREIX0UkGbRp6x1qy2eQsDqVLAxD6NpH5/6uxDldpFXAy8exhVvRqd0wp/5CfEv1XWswf66yC04m8O0Vb1NEVWtuigPQWcd1caT9ae3g/KYE77kE13C21iTlMcPg+Dk09l9miNjAZJiWOSoNjQRI2JEGGqYVdI1jVRAMDIsotGow7cxKQZsjzsQa2w58+UJfa9fypCWX6VvlmYtecEubp5bQV8cvuPHo0RW+HJfZu9Pcpm2baNFKsOm0Ck9YXlMeUWkVzotba+j8xc/7dCp4ObmN2ptt0glNDG2uA758U6rgkZuS0jyeR2M5w6ZDRuSmXM7EelfUekW/c3aPRDkTO4sLwzQtYaI/moAYDk8g5LK2k+UW5cgcRSQCGbZvt+xH7LhR+zuowHzG1TC9XzAvf69Lvq2FmujA1wAq8RdK+LJwiEdSZ2LOM5oJZ+JtbxjTl6hJf5Xb3eQTaSnW1LDMU1/R59HzBh01rgouyYmfghagNtoBrjPxL1K49nciyABuFUJGHJGgbaRTQPThuSG/mQbahJanvS4XU//Oo3YfNDgecnVTi2u4M6L/1YhUtpe70tyk6Uz8riYP2NlSb3k9P3Im1lhm2OdS4LwVI8rxQkshFRWZeF3FM69lxieCBDxI7OnM6lczzFGu/FXC+orF9D7mAvRm0VvfhyGLMOb5b3X5Lyrv0TlOpGv8wPK6kjoTc1I7TK5mZ+JWN766PtGWu4mknLaaxICoqBzBMTBPNRC/6Tb3ht/PrvQ1kZBcV/FzisUJBVsBmmYm8IaY9f75iO/xfPVIMLTfao3NxyU0EchuvZVF23gBfoDu3UJqnyvLbLQaMzNEbGzJr/XLhSm5SeuNEJiYooD6jHHsx8xz/IahPRpkqfEpdQ1cZ+JMaG60OYobIwbZ229l1LO193OciS+mcgijrSUhGiZOXhpEnn6ZxqUDHTvX4rkrhzNx1Tqqtxo8dhviKo8SQemsIwgXmJsCGxTTPHVPk68unjvgd0uq5NJcJhm0EaAzSIByY2bZkJuR1P4thoTvT/RxWYIxjU2rAH8aOs9r9Od/JjjPX6mN0Rx/JeXW9Fh1cEzSUyE3NnZ5zgV93dir0ycpkhuOwG8WV4EICurExcsZFBHlOGlkYu7YL6B+7pDC/FxG1zXHYXtY0Di+UBAyZ8ZpDAycaMNQ0pmY2v5pGGGNwFXUVvHOEu5OE2zTxcJ9RcG54UycdmRi7jnOprqnpbT+/YrG7T0rYvOX1w4m6TGKCEpLvyA2TV0+qjDPPLWI+M25X1535N+rTC7YEIbpEUkGU9upknKixcLznGHwLIbBJK3CKwnJzU56zDlmvbKabCoAhDDZqJrJjY0zselbJwjAa0W/Y6cUJ2RzlEkG7cHjfuMSx2K7+MMx7SPUf9uYGzEw4jcua02aduGtlCYnYkh0caS1MTFH9Q4hC2GAT06YChkawR0s5w36ivkI2zknMBgWzDvChI3B8BxVSG4s5o0NiebOrQ0stAjcN2nTHXCq9ZDX1yNa0p8Iyp+I2NQFvjJh5qZY89RYqn/ml/2PnKGqD5V2JuaSjzQTLeaJTVdV3rQKrzi4f+3iyI3embV3ivcmqyS9ke7V16mTm11vGAfWZepM7JmSGyJGA+hjQNG5+6r4hJZRzsRo8ztqY2SM1qUf1RldRMzy58dD24/KpSWO/4LKcXR81F5/jnnuo7DzO9BouYATc1dK5iilNTvfFJ1rM8XLLF7q2kA0OLZiqO5PoX6EqaA/1Qs553nb2mLeJHUm7ljhuTWFxm25yQHbDn19X+Ip9xIx2TsgLZrY/Mh/pqR5ahHV7EWVh3157X/4qjrhypkYArR9igI0zUSL6P8v6eMRZZ/sGbjWJK0C1Z1G58W63irBOTmRdW2IIczeWYpnVvZkqiaam/bK3Jl4FyrNHQhOq8jEIVqX00u8ecL08L9EZGDLfZXaatJmKDiC/rcqrTaE49kRdMxnCbVekyKIJdeZuOrJjXJsjopBojxeRI6gSr2e2dfjqK+fRxAvbAefqZ+HOHxqMfenlCEycVXMrda3vtG8zvf7+p53GTGUdXL+MzmzkxfEqMlrZeLNU49Szcu+7Hv4HFWlIMHaXNnFbxlfAc1Kmvmq8BwmTatwO5GV6yyOywX3S3BejtbWNpHpEpUdlD2Zqgm5STMysYsYNyXbgB8MkQT4M/y1RDU8RC9TWUx1oQ6DH0LcNnIQmi7U/gcltF4gSXsluAauM3GaSLwLiwR8N8U3R13CNEclnTehzsTUV4QieJBx/6E1OYb6+i/Gg8ohN49bXMO7CeoDf1RB1vRK4YvYuXPbW+sTVTmTCEm/ptxzWWBagtlp1bZuT8WYpybRb5fPuebwsRl523WVZNBGuEwxEKCpmLyI2CC4JHZM/STBOCIsh60D8qsJyM0spnal7FqNMpN07NDbzeLQd7JObgqdicOIQUvmm37sGwad51ZqD29C58dU3UTxtq8jkWUPRgbu9syxbojo9xSLRa6qQGRhSxUkmuTgXiILwx2clkWKI5yJIezjTELw0TiWjufkpLqJSvcYsoRdVUMLxswoKjfVb6Z4zsQTizRL0w3u46YMDcByavM7F/Om7TBoLf1TiJf0IbKyU12OrKjgcQCJob+aNJGJMU99TJWur/O8EZ/3/m1WcmPZCL2JEUkG09SsYI3e3jW5cZRWYQyVUxKkVRiT4NwDmFGMy5aSoEKA9tnUnAg/vElJTrquYQfjkNSZOAz7OJ6ECPQGrUzvBOOG4E99qAyn6+XY6l1psGJB5G0z5phNLOHfkwbgO8PZkfMQlXMcnXM/5vmKBXjHGE0G/EMQLLAvCfHFnI5gJxC1ewr9OUKF78x7X2uAFlnMmwkuSDQT0xiEa5h+zqyx/Z3jN23yVU/PU5cSX9k5CLAXMJXcX54mNgUkJ8I8NcPz/Jvo854vev9mucoWXGpD0nQmtmkbu7mmlyA2+bQK7RKMH7Qma6RVMAUdO5P6Mt2iH+j73Qxi2ELx/AJt702WSfqyJCddN0Q4jopgkttxXrTo+JmFcoJxzAFFx9xFQneg4QL/QsT26zAtCMjINXROvBHA/6ODwXghqBecYYdSO4sNjuNcw4yIwH+mwI6CkZx7RaUs5Eabo06OW0dU4N/SL8Ip1/ScIHlxZqCpqsi5WWs/7o8gCbM0Gbojyr8mhuA8Su2DWCBmDhwkm2vtD0LIP0C/L7OYN4WO9KmSaFNNkg12uGtCe2IkZ9Oyf3qd528a7G6C34yfS4+QJzbQ1DTpaRNhnpro+/7NdZ4aNeeqX69Q2YSTnVJlEKA2Jq/xUfFfHKdV+NbBfUCm8BcM6r+ptUWcdczmGhcpi92FNULSE2luuiieE3AYIBhM1ZMbqzW3aH9quMAv1sLCCEQkXiOCAyc7mKjuYBxyntbU2Kg3y5k2gZuktCzRV5nmKJCMc0i4v+nw1HHjgOvvRucs3q0B2/BjukB+gnBCUzfJgQ8QCA5MsJczq7Mc6eGwbEKiqf7CFOdWoSaJhe3umdiOGMnxnu+fRDxld01htBNwzqiUo751dXRDmnxtggo1Ty2l3x4hQjNszhUHva0yDBLwePnYxoY0lEOz4qD98RHX7SKtAnLrHW4QfDBOe/Mi9etsLSdKmZXxHML83N9A62BlkkohaWeasCG/LzslNzqKbvMKD0SDwQKPRborCWoroQMtjt6JFDu/qTxsQ2wcOBObomMZz8VBlDkKC8EYrTl5KoWw/h1K3Mt/ULmUzjkvhHzAzjupShYF0+zznPrvpNyfyJAMebS9f3IbkmAHEik51Pf9LkRodsjnPQi2aGviAjOTHzDMNfM//cg8NbVJeQ9ShXu//OOv5qvagI1AmE9C7xNHbb3DEaCajLjMV+UqrcInLm8GtTecrhXOxb2oHK3WjKkFEvhPkB+Yscqg1ciSMzH8pVobHrZABb5WTjU3m1Z4LOCE2FhADOBQFhY0DztUEEn0WiIcnyc8J4cMNNJ5Flm2z/WDSDxhbZKUpqy1Qf4kEM98jKJlmpDCcfadou3IrtGo1oyNBH8LzJUxdN7Pqn1RMDAB1ev6XBJdX3COTZRZjJvfMOpAI9aZ2s7/e3PP91vDb6bO93cnTrKX53mt/VUxZ/K7m4JPraTJMRs6LucYHJikfmSemknE5h++7z08+9JfvqdqDy6FXpoCFL4om9mQp4jv+6v4mGalsIwIxvdp3BCdh+oPKCS0sbbB4rDA9nyaGNrcm4Pp2PurYI4i+3mcLLHRTEHztdQ1uQHrPbQMg/IT/Ra4hwrMWHg44EAGE9MzJKSnaLXUhJD+4M3sQyIbSyMEPBj1ngZ9OYBR5ytq9xDuMwCTl+HbLoLPvRFxPYcrfloBjCtnl9f2Op4PBxjr0TY3WZs/+jkU+Nie3ZnKQZo0Yu4016QJTuKwQ79OZTSdu17ZJ2DNitYGz8dLBiQab7OjCv79aypPO+43/JzWyKjsE3FZh2jKShAVEBYvSHuQcwL2V/vM5JlNPiVCkXkKlKaB/jm6rk6NbmryJ3x+0YG+ql3YCL23HWpWuD4PNsJrFgmvLyMIxDdZuDnUz4X6RS3R+6iy2+J+oC6VxsAU5jF8m4a56NwaiyEJMaiUx6YxCjpa8ZEq8I85TEVvDUMwPYTn76XfAmHDvLNE5N9iIPfNzY67f1Dxgl0CH+lrMBFSg6PIGrRTKUzkHoqv+kXww9GVfIKI1Oyk5w36vHWJqp31m9UyOgapNPoTyZlZo+QGJL9HgfN1XH1sdz+pyGl533JdzEpNcHJbtPO7m9TqCMLa4qSKzFMf+0id4ql/1fnq+U/P3/8rtRaACAm22ttEjR7vUICmSW7GKYGyJJ3VArxMfuh4fiAi/QkJtu2X1NykAiI2EDpDLR5Y7LaCz8ZZ1MYJRAA4Dm7VFm01rj8vawIRNm5Y5DpU2fWUk9TAGRk7qLA13CS6Kpz+elI5ntq4nAT63RlcPEo9K9BQISJyI3OeYZdXd6pfLPz2LecFNWnuUqc1N57W3KiA5HxNfzfQbw34pB/fmHF2xzlq7YRtksF3HGmAPovSrDgS0OOVAPhFhvv+TtxuMEOSDm3NlS5NiqmSG+1M+xcVxLxIEoQOqQfegomGCE7cToyqITcMZ+L7MTYlHJV/ZrnIZZ7cECn5vQqS5LVI0Axs4ndRWzuQYL8mY4sHiF3hzkFoLmHzxy6uB0O2jbcsqr9C/xtbau+NCFS4ufrx7sTU4HteE9GauU2++qJOqZn0709odZxGf38wq+fenytBEm3Ih9pU4kKAsjQrJLw2sHz5eltusTXxrBZwCCp2npZyk8CaBEfsG2nuOs+TlRq5IcEOh8h6h2QDC/Fz1O4+UduY9W6v9cu5YIegMCs3/A+KF+25KggudT9dR9xDDnXy0xW8lqWlokenRGpAgvtR6euw2d7U7mwS8P+TlZWD+vpLw/pHWZzjVyJfqhIutSFpOhPvYyFD8CI3sQRhaqPKZFEoI1aQ8J5ddJ1Y52ZSyap28llGHWzCOSPke7i/YDwmcBOn2sDLq4UdExtMUOTa2bFENWz3wjZgbAeG/wCOOVnFB3t7iQTu4bL+1R40sYF68rxSCgCtjYAGA2YZvD0erILs3VuWImpU2heZcgSCqgMJPuz+2tPwsItJUNxe1E4zLWDWM2zrIGrrdUY/sSlhqGHbSPjYIaK9DXV/16mxW/oWXfOBMrPLC+cMWW/fHhtDbLBj49yi8P9I9jaajn9OBSHqo3AY1UEG7hfk9tUchsQQG2jkTg4J9vcmEaMRMYQaC/0AKsfLMAuqmNhAjb+7xaFh2pZ9LIgNNCtcE4FrZ2KbzOVZgPgYZZ3caAdYZGDduUS1+6mcGZWTib4fSe3A36J7iTZMw2ELqhxETqC+LLU9HZmjOxOxCTVJ4ntqA9Gmny/RxjFUp01UGwJBFcA2yeBkR+Rjql/fm5v01LUz8S9q9J6msjuMiPB9Ktg4EQVoqxGQFOb4B5npIITcROBqFZgIogD/jfMZySYfiSE30N5smiCwnqC6iA18k26LqdaTQUoQ8wVxMqK2voJ8/14/7AJBNcKGkEyKCHqW2jZtEqxbxbzERuFtx2QpC0hLcxPnT9VMz4FOemwvqtQA0HzpoNdexOOCdQcEGpE+n6K5+2Ya53RGbohswBzQJ6baYB1LJw5xOUGgaoWj8lhZC2sCIDYbl/gd0Yxjw3EjhQMRpXmqdFyPA4TcCCq4yGOdPL1ElaMtmm1G7fYL+d4mIOv2IW2tJAF0vaFgDQOCtE5zTOyqHfN1ZGPX8wjZBHYzOORCOqae+vJ8mec7tHGDVRCDrBiIe3cl1YFz8mnUtwVVSW5UEI+kWUydZ5htccLO7yLkJvsgMoIFuEtMtXpmW3BIbhXHw2XUBRUEFvRrHbe5ty4ucLguhXhfr+9JiciEmABtZzgelweobGd4zC3K7Q7Vb1OaRyCXpuFVTlClzfYuSY2n5wyC8dYxnokxIEIud085ITe73jAOE+jEmGpzGnt14m5748RO2EQJagFXMupw1bq7MObFZjLkggoii7FNwkxJzk1eJNicvaySoIQmeFuLQx+hfrxVo/NoizL2Dzv3LjAk6PClvclVB+octXOKivdyNwkGt58S1DzaPDQVGroujKoNDufNUhl5QQWRRdNL2MtFmvmqXMBm5xUCX06sYZJclphlRCzPMSQ2eZzush+uyM2xjDoTDNrjCKm5sk5mHnAwi1Otfja7xx7zHM6bBTLsgkqAFn34grXLYNfHFV3HTy21AOXcEm3rmP1DRu5Jp2ocf+1obpvb8Wd0vDNXmcQN7XrDOJgB9nH19k3tIUni5oyq02S5zDwOrgApni7DLqgQ4AD6acb6DE3nVAdagzlEHMqZYiPNyMyVJskIeNuqSq8PGhtblxEoW6BtW1EV5EYFDpocDZBL0wK2kU2RtbImFnsn80Y7E3Pmzpsy7IJKQPty7FADl2KjNXg7A33MSrA9m3hAC9LYtRWCoxMc+0VESANrppQUbTmsvbFXJ26WWY6AeoHaW6EEWUcbh6QYzsTNY+pgzrwowy4QJEJVa0W8rgOR13A7i0PHyfiX5YU1Cs+57IgLzY1LrQ2X3IyU9aUmsJ7DucMixbN77CG+WgKBPXFAYuJ9LA4tp1bERvgj+Od0x2PVgj7SyCn1W4tjllB/ujnux/d+fe8XHXKK26uN3HDUSCwP9F1vGOcxHhyo1p5RgloAUt6X2prt2pl4qAy5QJAICNOxvuExy1T1OxPXp5Ce4HjXAjsBjlW8jT8mQNLrYnKDHVk2TvPDafyd7lRzYZbiOMhxbX0QUFvG1Lm2sVenlbLG1AQ+dTC38ojLFP8qEaUxMuQCQSLYaEVeMMhXVak+phG1vFONz4Uwwvq4RTvIf3WJ6865IDeNKkhTXwobM9u6NOb316g8LOtLzSBuJ9QGnEZ0lOP2MW+OF8twCwQVEdg3lqtzXteBdRbk5h8p5Tfav8bnQpiP0hAVJDnm4nUqh9H4L6k6ctPYq9NyFZ+hO+6tGiapY1QQDDAKsImewUi6KcgORsf83oGIS4sYYoPYIcNj2rl6do89pspwCwRlF9h3k+B6o4z9g0mkuUF9pJY4JwWSldWYRib4keZG54eCvJ8RcyzyjF1F5VA6Zn4anXMVxO9vMb93I/JyRAlig9QNo0ocDzPUCURsZihBLQGkuJTpCT5ht+ht3mHEBjv1YGraqUQbf1dBvhiBQJBMYCP+mElutldV+TWmJuQLwvnXJFwXVbgfWcRsGrdQDQ19D8K4J5UrVKCZWYivqXxF5SUql1FpS/UGx+QaSzZffd+NIoQIyiuqdBZaRH5EIq3hRFLmUn3slEGmUJiiSu2Nb6JyGh3zkCwvtQciKNDWjYiphqyxfWf32KNBH7Mz5oR+SEq9pf2TynF03DIZaYEgMbnBCyo38SKe6T+Q8FpW5j4Oo4/zY6pBFsFUNoD6tzylfsDpeqMang4raOwWV/V8dUhuIHDgGMSJTvidvvFxofdhhzuFiM0TsrTULLnBHHiKylGM6ss12W3GqAvfrDOE2AgEzgR2H/q4LqYagqv2IcH3TIX6CD++sJ2TMH1Ao4BYKvemZQoR1CC50QTnMPqoV+ZbBcPwIZXjidhMlttU8wQH28HHKDcJU0FmrqZyCxEb8c8SCNwRBxCbg0KeN5gbECPmJSIN42SkBDVHbjTBganpMSotEwgnxCO5jojN93KL1hqCA/MSTI9dEzQD++754jwsEAgEQm6cN0oEB7Fq/kzlLMWLQgvAVHUflcFEambJrVkrCQ5MVEh7jzfEtgaHjsW8IVLzrIyiQCAQCFIhNwUkBzk+4DCKrWGIPLxVwc/Q0MD0hIRq8KAeTaRmsdwSAZEcEGJocBAuHOHLd1RBttg8ZlOZrEnNk0RqPpZREwgEAkFZyI1AIBAIBAJBuVEnQyAQCAQCgUDIjUAgEAgEAoGQG4FAIBAIBAIhNwKBQCAQCARCbgQCgUAgEAi5EQgEAoFAIBByIxAIBAKBQCDkRiAQCAQCgSBF/L8AAwDK+px3zDhr5AAAAABJRU5ErkJggg==" alt="파주시 - 평화도 경제도 파주로!">
+                </div>
+                <div class="rs">최초 1회 · 이후 자동 연결 · 파주시 AI 혁신동아리 일잘러 AI팀 6조</div>
+              </div>
+              <div class="reg-body">
+                <div>
+                  <div class="reg-sec-label">① 소속 <span class="sub">· 파주시청 조직도</span></div>
+                  <select id="selBureau"><option value="">국 / 직속기관·사업소 선택</option></select>
+                  <div class="two-col-reg" style="margin-top:8px;">
+                    <select id="selDept" disabled><option value="">과 선택</option></select>
+                    <select id="selTeam" disabled><option value="">팀 선택</option></select>
+                  </div>
+                  <div id="orgPreview" style="margin-top:8px;font-size:12.5px;">현재 선택 : <span id="orgPreviewText" style="color:#98a0ab;">(미선택)</span></div>
+                  <div class="reg-hint">파주시 워크포트락 데모버전이므로, 담당자는 <b>농업기술센터-기술보급과-농업기계팀 김파주 주무관</b>으로 지정되어 시연됩니다.</div>
+                </div>
+                <div>
+                  <div class="reg-sec-label">② 직위/직급 · 성명 <span class="sub">· 고정값(데모)</span></div>
+                  <div class="two-col-reg">
+                    <input type="text" id="staffTitle" value="주무관" disabled>
+                    <input type="text" id="staffName" value="김파주" disabled>
+                  </div>
+                </div>
+                <div>
+                  <div class="reg-sec-label">③ 파일 등록 <span class="sub">· 등록 즉시 가운데 '보고서 변환'에 활용</span></div>
+                  <div id="budgetEmptyBox" class="budget-drop">
+                    <div class="bi">⤓</div>
+                    <div class="bt">업무 파일 첨부 (모든 형식 · 복수 선택 가능)</div>
+                    <div class="bh">01_2026년_예산서.xls(xls/csv) 첨부 시 세부사업 자동 등록 · pdf·xls·hwp·hwpx·docx·txt·csv 본문 자동 추출</div>
+                  </div>
+                  <div id="budgetError" class="budget-error" style="display:none;"></div>
+                  <div id="budgetOkBox" class="budget-ok" style="display:none;">
+                    <div class="bok" id="budgetOkTitle">✓ 파일 등록됨</div>
+                    <div id="budgetOkList"></div>
+                  </div>
+                  <input type="file" id="budgetInputHidden" multiple>
+                  <button type="button" id="loadDemoOrg" style="width:100%;margin-top:9px;padding:8px;border-radius:7px;border:1px dashed var(--gold);background:#FBF6E9;color:#8A6A16;font-weight:700;font-size:11px;cursor:pointer;">▶ 데모 소속·예산 자동 채우기 (농업기술센터-기술보급과-농업기계팀)</button>
+                </div>
+              </div>
+              <div class="reg-foot">
+                <div style="flex:1;min-width:0;">
+                  <div class="note" id="regMissing" style="color:var(--seal);font-weight:700;display:none;margin-bottom:3px;"></div>
+                  <div class="note">상용화 시 업무툴 접속으로<br>소속·세부사업 자동 인식</div>
+                </div>
+                <button class="reg-complete-btn" id="completeRegBtn" disabled>등록완료</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ① 업무 자료 담기 -->
+        <div class="sb-section">
+          <div class="sb-head"><span class="sb-head-left"><span class="num-badge">1</span>업무 자료 담기</span></div>
+          <div class="basket-box">
+            <div class="cat-row" id="catRow">
+              <div class="cat-label">업무 바구니 선택</div>
+              <select id="fileCategory"></select>
+              <div class="cat-target-hint" id="catTargetHint"></div>
+            </div>
+            <div class="demo-lib">
+              <div class="demo-lib-head">
+                <span class="dlt">📁 데모 자료실 <span class="dlt-sub">클릭해서 담아 보세요</span></span>
+                <span class="dl-count" id="demoLibCount">0 / 10건 담김</span>
+              </div>
+              <div class="demo-lib-actions">
+                <button type="button" id="demoLoadAllBtn" class="dl-btn primary">전체 담기</button>
+                <button type="button" id="demoClearBtn" class="dl-btn">비우기</button>
+              </div>
+              <div class="demo-lib-list" id="demoLibList"></div>
+            </div>
+            <div class="typed-box">
+              <div class="typed-head">
+                <span class="th-t">✍ 직접 입력</span>
+                <span class="th-sub">메모·회의내용을 붙여넣어도 문서로 변환됩니다</span>
+              </div>
+              <input type="text" id="typedTitle" placeholder="제목 (선택) — 예: 3월 정례회의 메모" autocomplete="off">
+              <textarea id="typedText" rows="4" placeholder="여기에 내용을 입력하거나 붙여넣으세요.&#10;예) 노후 농기계 조기폐차 신청이 예산을 초과할 것으로 보임. 우선순위 기준 마련 필요."></textarea>
+              <div class="typed-foot">
+                <span class="typed-count" id="typedCount">0자</span>
+                <button type="button" id="typedAddBtn" class="typed-add" disabled>＋ 자료로 담기</button>
+                <button type="button" id="typedAiBtn" class="typed-ai" disabled>✨ AI로 정리해서 담기</button>
+              </div>
+              <div class="typed-hint" id="typedAiHint">✨ 버튼은 채팅창 우측 상단 <b>⚡</b>에서 실시간 AI를 연결하면 사용할 수 있습니다. 입력한 메모를 공문 문체로 다듬어 담습니다.</div>
+            </div>
+            <div class="own-upload">
+              <div class="ou-label">내 파일 추가 (선택) · pdf·xls·hwp·hwpx·docx·txt·csv 본문 자동 추출</div>
+              <input type="file" id="fileInput" multiple>
+            </div>
+            <div class="mask-note" id="maskNote">⚠ 개인정보(연락처 등)로 추정되는 항목이 감지되어 자동으로 마스킹(●●●●) 처리했습니다.</div>
+          </div>
+        </div>
+
+        <!-- ② 담당세부사업 / AI 업무 협업 범위 -->
+        <div class="sb-section" id="budgetSection" style="display:none;">
+          <div class="sb-head"><span class="sb-head-left"><span class="num-badge">2</span>담당세부사업 / AI 업무 협업 범위</span><button class="sb-head-btn" id="addBudgetRootBtn" title="새 업무 범위(카테고리) 추가">＋ 추가</button></div>
+          <div id="budgetTree"></div>
+        </div>
+
+        <!-- ③ 기타업무 -->
+        <div class="sb-section">
+          <div class="sb-head"><span class="sb-head-left"><span class="num-badge">3</span>기타업무</span><button class="sb-head-btn" id="addOtherRootBtn" title="새 업무 범위(카테고리) 추가">＋ 추가</button></div>
+          <div id="otherTree"></div>
+        </div>
+
+      </div>
+      <div class="sb-foot">클릭 = AI 협업 범위 선택 · + 하위 폴더 추가 · × 삭제 (웹하드 방식)</div>
+    </aside>
+
+    <div class="col-resizer" id="colResizer1" title="드래그해서 폭 조절"></div>
+
+    <!-- ===================== 가운데: 파주시 AI 업무비서 (메인 화면) ===================== -->
+    <main class="center">
+      <div class="center-card">
+
+            <div class="agent-titlebar">
+              <div class="agent-title">파주시 AI 업무비서</div>
+              <div class="agent-title-right">
+                <button class="feat-btn" id="featBtn">💬 <span id="featBtnLabel">ChatAgent</span> <span style="color:#98a0ab;font-size:9px;">▾</span></button>
+                <button class="model-chip" id="modelChip"><span class="gdot"></span><span id="modelLabel">Claude Sonnet 5</span> <span style="color:#98a0ab;font-size:9px;">▾</span></button>
+                <button class="live-btn" id="liveBtn" title="실시간 AI 연결 설정">⚡ <span id="liveBtnLabel">시나리오</span></button>
+                <div class="feat-dropdown" id="featDropdown"></div>
+                <div class="model-dropdown" id="modelDropdown"></div>
+              </div>
+            </div>
+            <div class="scope-row">
+              <div class="tab-fixed-label">협업 범위</div>
+              <div class="tabbar" id="scopeTabBar"></div>
+            </div>
+            <div class="center-scroll" id="centerScroll">
+              <div class="center-inner" id="centerInner"></div>
+            </div>
+            <div class="inputbar" id="inputBar">
+              <div class="inputbar-inner">
+                <div class="chat-inputrow">
+                  <textarea id="chatInput" placeholder="메시지를 입력하세요…" rows="1"></textarea>
+                  <div class="inputbar-toolrow">
+                    <span class="tool-chip">＋</span>
+                    <span class="tool-chip">🔧 도구 ▾</span>
+                    <span class="tool-chip">🌐 웹 검색</span>
+                    <div class="tb-spacer2"></div>
+                    <button class="sendBtn" id="chatSendBtn">↑</button>
+                  </div>
+                </div>
+                <div class="disclaimer">ⓘ AI 생성 참고정보이며, 개인정보·비공개 정보 입력은 금지됩니다.</div>
+              </div>
+            </div>
+                </div>
+    </main>
+
+    <div class="col-resizer" id="colResizer2" title="드래그해서 폭 조절"></div>
+
+    <!-- ===================== 오른쪽: 문서 생성 + 로드맵 ===================== -->
+    <aside class="report" id="reportPanel">
+      <div class="report-top-block">
+        <div class="report-head">
+          <div class="report-head-row">
+            <span class="report-title"><span class="num-badge">4</span> 문서 생성</span>
+            <span class="report-tag">7종 서식</span>
+          </div>
+          <div class="rbtn-grid" id="reportBtnGrid"></div>
+        </div>
+        <div class="report-body-scroll">
+          <div class="report-body" id="docSheet">
+            <div class="doc-empty">왼쪽에서 자료를 담은 뒤<br><b>위에서 원하는 서식을 선택</b>하면<br>여기에 문서가 생성됩니다.</div>
+          </div>
+        </div>
+        <div class="effect-bar" id="effectBar" style="display:none;"></div>
+        <div class="report-foot">
+          <div class="rf-row">
+            <button class="rf-btn" disabled title="시연용 비활성">한글</button>
+            <button class="rf-btn" disabled title="시연용 비활성">Excel</button>
+          </div>
+          <div class="rf-row">
+            <button class="rf-save" id="copyBtn" disabled>복사</button>
+            <button class="rf-save" id="downloadBtn" disabled>다운로드</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-block">
+        <div class="roadmap-title"><span class="num-badge">5</span> 웹프로그램 제약사항 안내 및 향후 로드맵</div>
+        <div class="constraint-box">
+          본 웹 프로그램은 「2026년도 파주시 AI 전문가 교육 및 동아리 활동」의 동아리 제6조(일잘러_AI팀)의 과제 산출물입니다.<br>
+          · 프로그램의 구동은 <b class="kw">데모 버전</b>으로, 실제 업무(노후 농업기계 지원사업 등)를 기반으로 가공하여 구성하였습니다.<br>
+          · 기본 동작은 실제 AI의 사전 답변을 기반으로 한 <b class="kw">시나리오 방식</b>이며, 시연 시에는 <b class="kw">가운데 채팅창의 ⚡ 버튼</b>에서 API 키를 넣어 <b class="kw">동일 구조가 실시간으로도 작동함</b>을 바로 확인하실 수 있습니다.<br>
+          · 실제 업무망 확산 시에는 보안·개인정보 여건을 고려하여 외부 API 대신 <b class="kw">Ollama 등 폐쇄망 로컬 LLM</b>으로 대체 연동할 계획입니다.
+        </div>
+        <div class="tier-grid">
+          <div class="tier-item"><h3><span class="kw">🔒 Ollama 폐쇄망 LLM</span></h3><p>내부망 로컬 LLM 연동 시 규칙기반·사전 시나리오 → 실시간 자연어 응답으로 고도화 예정</p></div>
+          <div class="tier-item"><h3><span class="kw">🗄 Supabase 다중사용자 DB</span></h3><p>부서별 자료를 실시간 공유하는 공동 DB 구조로 확장 예정</p></div>
+          <div class="tier-item"><h3><span class="kw">🏛 새올 행정시스템 연동</span></h3><p>인사정보·조직도 자동 동기화 및 예산 데이터 자동 연동 예정</p></div>
+          <div class="tier-item" style="margin-bottom:0;"><h3><span class="kw">📎 OCR·엑셀 파서 자동화</span></h3><p>pdf·xls(x)·hwp(미리보기)·hwpx·docx·txt·csv 본문 자동 추출 <b class="kw">적용 완료</b> — 스캔본 OCR·hwp 전체 본문은 지원 예정</p></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- ===================== 사용순서 안내 ===================== -->
+<div id="coachLayer">
+  <div class="coach-ring" id="coachRing"></div>
+  <div class="coach-arrow" id="coachArrow">▼</div>
+  <div class="coach-card" id="coachCard">
+    <div class="coach-card-top"></div>
+    <div class="coach-card-body">
+      <span class="coach-step-no" id="coachStepNo">STEP 1</span>
+      <div class="coach-title" id="coachTitle"></div>
+      <div class="coach-desc" id="coachDesc"></div>
+    </div>
+    <div class="coach-card-foot">
+      <div class="coach-dots" id="coachDots"></div>
+      <button class="coach-skip" id="coachSkipBtn">건너뛰기</button>
+      <button class="coach-btn" id="coachPrevBtn">이전</button>
+      <button class="coach-btn main" id="coachNextBtn">다음</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== 실시간 AI 연결 설정 ===================== -->
+<div id="liveModal">
+  <div class="live-card">
+    <div class="live-head">
+      <div class="lt">⚡ 실시간 AI 연결 (선택)</div>
+      <div class="ls">시나리오에 없는 질문을 실제 AI가 이어서 답변합니다 · 키를 넣지 않으면 기존 시나리오 모드로 동작합니다</div>
+    </div>
+    <div class="live-body">
+      <div class="live-warn">
+        ⚠ <b>주의</b> — 실시간 연결을 켜면 질문과 첨부 자료 본문이 <b>외부 AI 서버로 전송</b>됩니다.<br>
+        실제 개인정보·비공개 문서는 절대 올리지 마시고, 데모용 가공 자료만 사용해 주세요.<br>
+        API 키는 이 화면(메모리)에만 보관되며 파일·브라우저에 저장되지 않습니다. 새로고침 시 사라집니다.
+      </div>
+      <div class="live-field">
+        <label>API 키</label>
+        <input type="password" id="liveKeyInput" placeholder="Google AI Studio에서 발급한 Gemini API 키 붙여넣기" autocomplete="off">
+        <div class="live-hint">aistudio.google.com → Get API key → 무료 티어로 발급 가능 (카드 등록 불필요)</div>
+      </div>
+      <div class="live-field">
+        <label>모델명</label>
+        <input type="text" id="liveModelInput" value="gemini-2.5-flash" autocomplete="off">
+        <div class="live-hint">호출 실패(404) 시 gemini-2.0-flash 등 사용 가능한 모델명으로 바꿔 주세요.</div>
+      </div>
+      <div class="live-status" id="liveStatus"></div>
+    </div>
+    <div class="live-foot">
+      <button class="live-off" id="liveOffBtn">연결 해제 (시나리오 모드)</button>
+      <div style="flex:1;"></div>
+      <button class="live-cancel" id="liveCancelBtn">닫기</button>
+      <button class="live-save" id="liveSaveBtn">연결하기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===================== 조직도 데이터 (등록 모달용) ===================== */
+const ORG = {
+  /* 본청 */
+  "예산재정실": {"예산법무과":null, "회계과":null, "세정과":null, "납세지원과":null, "징수과":null},
+  "민생경제국": {"민생경제과":null, "기업지원과":null, "에너지과":null, "위생과":null},
+  "행정안전국": {"행정지원과":null, "자치협력과":null, "안전총괄과":null, "민원여권과":null},
+  "복지정책국": {"복지정책과":null, "복지지원과":null, "노인장애인과":null, "여성가족과":null, "보육아동과":null, "청년청소년과":null},
+  "문화교육국": {"문화예술과":null, "관광과":null, "평생교육과":null, "체육과":null},
+  "도로교통국": {"교통정책과":null, "버스정책과":null, "도로건설과":null, "주차관리과":null, "첨단도시정보과":null},
+  "도시발전국": {"도시계획과":null, "균형개발과":null, "평화경제과":null, "공공건축과":null, "토지정보과":null, "부동산과":null},
+  "건축주택국": {"허가총괄과":null, "허가1과":null, "허가2과":null, "허가3과":null, "주택과":null, "건축디자인과":null},
+  "환경국": {"기후위기대응과":null, "자원순환과":null, "상수도과":null, "하수도과":null},
+  /* 직속기관 */
+  "파주보건소": {"보건행정과":null, "질병관리과":null, "건강증진과":null, "문산보건센터":null, "월롱보건지소":null, "탄현보건지소":null, "파평보건지소":null, "적성보건지소":null},
+  "운정보건소": {"보건행정팀":null, "의약관리팀":null, "진료검진팀":null, "건강100세팀":null, "모자보건팀":null},
+  "농업기술센터": {
+    "농업정책과":null,
+    "동물관리과":null,
+    "도시농업과":null,
+    "기술보급과": ["식량작물팀","연구개발팀","원예특작팀","농업기계팀","문산장단농업인상담실","법원파주농업인상담실","적성파평농업인상담실"]
+  },
+  /* 사업소 */
+  "도시관리사업본부": {"도시관리과":null, "하천관리과":null, "도로관리과":null, "산림정원과":null},
+  "차량등록사업소": {"차량등록팀":null, "특별사법경찰팀":null, "차량세무팀":null},
+  "중앙도서관": {"도서관정책팀":null, "도서관운영팀":null, "기록관리팀":null, "도서관협력팀":null},
+  "교하도서관": {"도서행정팀":null, "도서관운영팀":null, "한빛도서관팀":null, "해솔도서관팀":null, "한울도서관팀":null},
+  "문산도서관": {"도서행정팀":null, "도서관운영팀":null, "법원도서관팀":null, "광탄도서관팀":null}
+};
+/* 출처: 파주시청 홈페이지 HOME>파주소개>시청안내>조직도>파주시청 (최종 갱신일 2026.07.08) */
+
+const STATUS_COLOR = {'검토중':{c:'#6b7280',bg:'#eceef1'},'진행중':{c:'#1f5fa8',bg:'#e6eef7'},'완료':{c:'#2f7a4a',bg:'#e2f0e8'}};
+
+/* 담당세부사업 기본값 (예산서가 CSV로 파싱되지 않은 경우 사용) */
+function defaultBudgetTree(){
+  return [
+    {id:'b1', name:'농기계임대사업소 운영', amount:'649,680천원', status:'진행중', timelineKey:'b1', children:[]},
+    {id:'b2', name:'농업기계 안전교육 지원', amount:'6,000천원', status:'검토중', timelineKey:'b2', children:[]},
+    {id:'b3', name:'노후 농업기계 미세먼지 저감 대책 지원', amount:'22,000천원', status:'진행중', timelineKey:'b3', children:[]},
+  ];
+}
+const TIMELINES = {
+  b3: [
+    {label:'사업 검토', date:'2026.01', done:true},
+    {label:'계획 수립', date:'2026.02', done:true},
+    {label:'신청 접수', date:'2026.03.30~04.17', current:true},
+    {label:'대상자 선정 (서류 심사)', date:'2026.04월말', done:false},
+    {label:'폐차 이행·보조금 지급', date:'2026.05~10', done:false},
+    {label:'정산·결과보고', date:'2026.11', done:false},
+  ],
+  b1: [
+    {label:'예산 확정', date:'2026.01', done:true},
+    {label:'장비 점검', date:'2026.02~03', done:true},
+    {label:'임대 운영', date:'2026.04~11', current:true},
+    {label:'정산 완료', date:'2026.12', done:false},
+  ],
+  b2: [
+    {label:'계획 검토', date:'2026.02', current:true},
+    {label:'신청 접수', date:'2026.04~05', done:false},
+    {label:'검사 시행', date:'2026.06~09', done:false},
+    {label:'완료', date:'2026.10', done:false},
+  ],
+  ordinance: [
+    {label:'입법안 작성 · 초안심사', date:'입안부서·법제부서', done:true},
+    {label:'입법계획수립(방침결재)', date:'시장 결재', done:true},
+    {label:'의견조회 및 의견반영', date:'규제·부패·성별영향평가 등', current:true},
+    {label:'입법예고 및 의견반영', date:'20일 이상 시보 게재', done:false},
+    {label:'본심사 · 조례·규칙심의회 심의', date:'법제부서', done:false},
+    {label:'입법안 최종결재 · 시의회 제출', date:'시장 결재', done:false},
+    {label:'시의회 심의·의결 · 이송·접수', date:'', done:false},
+    {label:'공포 전 보고(경기도) · 공포', date:'', done:false},
+  ],
+};
+
+/* ===================== 상태 ===================== */
+const state = {
+  reg:{unit:'', dept:'', team:'', rank:'주무관', name:'김파주', budgetLoaded:false},
+  selectedNodeId:'CITY',
+  openAccordion:null,
+  feature:'chat', model:'Claude Sonnet 5',
+  featOpen:false, modelOpen:false,
+  selectedReport:null,
+  chatThinking:false,
+};
+
+let budgetTree = [];
+let otherWorkList = [{id:'other', name:'기타업무', children:[]}];
+
+let SCOPE_TABS = [
+  {id:'CITY', label:'파주시 전체'},
+  {id:'BUREAU:농업기술센터', label:'농업기술센터'},
+  {id:'DEPT:기술보급과', label:'기술보급과'},
+  {id:'TEAM:농업기계팀', label:'농업기계팀'},
+];
+/* 등록된 소속에 맞춰 협업 범위 탭 재구성 — 데모(농업기계팀) 외 다른 국·과·팀도 그대로 동작 */
+function rebuildScopeTabs(){
+  const r = state.reg;
+  const tabs = [{id:'CITY', label:'파주시 전체'}];
+  if(r.unit) tabs.push({id:'BUREAU:'+r.unit, label:r.unit});
+  if(r.dept) tabs.push({id:'DEPT:'+r.dept, label:r.dept});
+  if(r.team) tabs.push({id:'TEAM:'+r.team, label:r.team});
+  SCOPE_TABS = tabs;
+  if(!tabs.some(t=>t.id===state.selectedNodeId) && !resolveKind(state.selectedNodeId)){
+    state.selectedNodeId = 'CITY';
+  }
+}
+
+const FEATURES = {
+  chat:    {name:'ChatAgent', icon:'💬', desc:'최신 모델 챗 비서입니다.'},
+  summary: {name:'요약/초안', icon:'📝', desc:'파일 문서를 일정한 형식으로 정리합니다.'},
+  image:   {name:'이미지생성', icon:'🖼️', desc:'AI로 이미지를 생성합니다.'},
+  manual:  {name:'당직매뉴얼', icon:'📕', desc:'파주시 당직민원 매뉴얼을 기반으로 답변합니다.'},
+  multi:   {name:'멀티 LLM 비교', icon:'🔀', desc:'동시에 LLM을 비교 분석하세요.'},
+  minutes: {name:'회의록', icon:'🎙️', desc:'녹음 파일을 업로드하면 요약해 드립니다.'},
+  law:     {name:'법령 조회 시스템', icon:'🏛️', desc:'법령·조례를 물어보세요.'},
+};
+const MODEL_LIST = ['Claude Sonnet 5','gpt-5.2','gpt-5.2-thinking','gemini-2.5','gemini-3.1','perplexity','grok-4'];
+
+/* ===================== 등록 모달 ===================== */
+const bureauSel = document.getElementById('selBureau');
+const deptSel = document.getElementById('selDept');
+const teamSel = document.getElementById('selTeam');
+
+const ORG_HIGHLIGHT = new Set(['농업기술센터', '기술보급과', '농업기계팀']);
+function fillSelect(sel, items, placeholder){
+  sel.innerHTML = '<option value="">'+placeholder+'</option>';
+  items.forEach(i=>{
+    const o = document.createElement('option');
+    o.value = i; o.textContent = i;
+    if(ORG_HIGHLIGHT.has(i)){
+      o.style.color = '#2452F0';
+      o.style.fontWeight = '800';
+      o.style.backgroundColor = '#EAF0FF';
+    }
+    sel.appendChild(o);
+  });
+}
+fillSelect(bureauSel, Object.keys(ORG), '국 / 직속기관·사업소 선택');
+
+bureauSel.addEventListener('change', ()=>{
+  const b = bureauSel.value;
+  teamSel.innerHTML = '<option value="">해당없음</option>'; teamSel.disabled = true;
+  state.reg.unit = b; state.reg.dept=''; state.reg.team='';
+  if(!b){ deptSel.innerHTML = '<option value="">과 선택</option>'; deptSel.disabled = true; refreshRegBtn(); updateOrgPreview(); return; }
+  fillSelect(deptSel, Object.keys(ORG[b]), '과 선택');
+  deptSel.disabled = false;
+  refreshRegBtn();
+  updateOrgPreview();
+});
+deptSel.addEventListener('change', ()=>{
+  const b = bureauSel.value, d = deptSel.value;
+  state.reg.dept = d; state.reg.team='';
+  if(!b || !d){ teamSel.innerHTML='<option value="">팀 선택</option>'; teamSel.disabled=true; refreshRegBtn(); updateOrgPreview(); return; }
+  const teams = ORG[b][d];
+  if(Array.isArray(teams)){
+    fillSelect(teamSel, teams, '팀 선택');
+    teamSel.disabled = false;
+  } else {
+    teamSel.innerHTML = '<option value="">해당없음 (과 단위 운영)</option>';
+    teamSel.disabled = true;
+  }
+  refreshRegBtn();
+  updateOrgPreview();
+});
+teamSel.addEventListener('change', ()=>{ state.reg.team = teamSel.value; refreshRegBtn(); updateOrgPreview(); });
+
+function isMachineryTeam(){
+  return state.reg.unit === "농업기술센터" && state.reg.dept === "기술보급과" && state.reg.team === "농업기계팀";
+}
+function updateOrgPreview(){
+  const r = state.reg;
+  const parts = [r.unit, r.dept, r.team].filter(Boolean);
+  const el = document.getElementById('orgPreviewText');
+  if(parts.length === 0){ el.textContent = '(미선택)'; el.style.fontWeight='500'; el.style.color='#98a0ab'; return; }
+  el.textContent = parts.join(' - ');
+  if(isMachineryTeam()){ el.style.fontWeight='800'; el.style.color='#141A22'; }
+  else { el.style.fontWeight='500'; el.style.color='#98a0ab'; }
+}
+
+document.getElementById('loadDemoOrg').addEventListener('click', ()=>{
+  bureauSel.value = "농업기술센터"; bureauSel.dispatchEvent(new Event('change'));
+  deptSel.value = "기술보급과"; deptSel.dispatchEvent(new Event('change'));
+  teamSel.value = "농업기계팀"; teamSel.dispatchEvent(new Event('change'));
+  loadDemoBudget();
+});
+
+/* ===================== 예산서 (등록 모달 내) ===================== */
+let budgetData = [];
+let regFiles = [];      /* 등록 모달 ③에서 첨부한 업무 파일 (복수) */
+let regFileSeq = 0;
+let budgetFileName = '';
+
+document.getElementById('budgetEmptyBox').addEventListener('click', ()=>{
+  document.getElementById('budgetInputHidden').click();
+});
+/* 파일명이 01_...예산서 형태면 '예산서'로 인식해 세부사업을 자동 등록 */
+function isBudgetFile(name){
+  return /^01_/.test(name) && name.includes('예산서');
+}
+document.getElementById('budgetInputHidden').addEventListener('change', (e)=>{
+  const files = Array.from(e.target.files);
+  document.getElementById('budgetError').style.display = 'none';
+  files.forEach(async (file)=>{
+    if(regFiles.some(f=>f.name===file.name)) return;  /* 동일 파일명 중복 등록 방지 */
+    const entry = {id:'rf'+(++regFileSeq), name:file.name, content:'', isText:false};
+    regFiles.push(entry);
+    markFilesLoaded();
+    /* 본문 추출 (pdf·xls·hwp·hwpx·docx·txt·csv) — 실패 시 파일명만 인식 */
+    let text = null;
+    try{ text = await extractFileText(file); }catch(err){}
+    if(text && text.trim()){ entry.content = text; entry.isText = true; }
+    /* 예산서 파일이면 세부사업 자동 등록 : csv는 본문, xls/xlsx는 첫 시트를 파싱 */
+    if(isBudgetFile(file.name)){
+      budgetFileName = file.name;
+      budgetData = [];
+      if(/\.csv$/i.test(file.name) && entry.content){
+        budgetData = parseBudgetCSV(entry.content);
+      } else if(/\.(xls|xlsx)$/i.test(file.name)){
+        try{
+          await ensureXLSX();
+          const wb = XLSX.read(await file.arrayBuffer(), {type:'array'});
+          const csv = XLSX.utils.sheet_to_csv(wb.Sheets[wb.SheetNames[0]]);
+          const parsed = parseBudgetCSV(csv);
+          if(parsed.length) budgetData = parsed;
+        }catch(err){}
+      }
+    }
+    markFilesLoaded();
+  });
+  e.target.value = '';
+});
+function removeRegFile(id){
+  const idx = regFiles.findIndex(f=>f.id===id);
+  if(idx < 0) return;
+  const removed = regFiles.splice(idx,1)[0];
+  if(isBudgetFile(removed.name) && !regFiles.some(f=>isBudgetFile(f.name))){
+    budgetData = []; budgetFileName = '';
+  }
+  markFilesLoaded();
+}
+function parseBudgetCSV(text){
+  const rows = text.split(/\r?\n/).map(r=>r.trim()).filter(Boolean);
+  if(rows.length < 2) return [];
+  return rows.slice(1).map(r=>{
+    const c = r.split(',').map(x=>x.trim());
+    return {name:c[0]||'', total:c[1]||'', national:c[2]||'', provincial:c[3]||'', city:c[4]||''};
+  }).filter(d=>d.name);
+}
+function loadDemoBudget(){
+  document.getElementById('budgetError').style.display = 'none';
+  budgetFileName = '01_2026년_예산서.xls';
+  budgetData = [];
+  if(!regFiles.some(f=>f.name===budgetFileName)){
+    regFiles.push({id:'rf'+(++regFileSeq), name:budgetFileName, content:'', isText:false});
+  }
+  markFilesLoaded();
+}
+function buildBudgetTreeFromData(){
+  if(budgetData.length > 0){
+    return budgetData.map((d,i)=>({id:'bd'+i, name:d.name, amount:(d.total?d.total+'천원':''), children:[]}));
+  }
+  return defaultBudgetTree();
+}
+function markFilesLoaded(){
+  state.reg.budgetLoaded = regFiles.length > 0;
+  const ok = document.getElementById('budgetOkBox');
+  const empty = document.getElementById('budgetEmptyBox');
+  if(regFiles.length === 0){
+    ok.style.display = 'none';
+    empty.style.display = 'block';
+    refreshRegBtn();
+    return;
+  }
+  empty.style.display = 'none';
+  ok.style.display = 'block';
+  document.getElementById('budgetOkTitle').textContent = `✓ 파일 ${regFiles.length}건 등록됨 · 등록완료 시 '보고서 변환'에 활용`;
+  const list = document.getElementById('budgetOkList');
+  let html = regFiles.map(f=>`<div class="bitem"><span class="d"></span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${f.name}</span><button type="button" class="rf-del" data-id="${f.id}" style="border:none;background:none;color:var(--seal);font-weight:700;font-size:11px;cursor:pointer;flex:none;line-height:1;">✕</button></div>`).join('');
+  if(budgetFileName && (budgetData.length > 0 || isMachineryTeam())){
+    const items = buildBudgetTreeFromData();
+    html += `<div style="margin-top:8px;padding-top:7px;border-top:1px dashed #cfe3d6;font:700 10px var(--sans);color:#2f7a4a;margin-bottom:5px;">예산서 인식 → 세부사업 자동 등록</div>`;
+    html += items.map(b=>`<div class="bitem"><span class="d"></span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${b.name}</span><span class="amt">${b.amount||''}</span></div>`).join('');
+  }
+  list.innerHTML = html;
+  list.querySelectorAll('.rf-del').forEach(btn=>{
+    btn.addEventListener('click', (ev)=>{ ev.stopPropagation(); removeRegFile(btn.dataset.id); });
+  });
+  refreshRegBtn();
+}
+/* 구버전 호출 호환 */
+function markBudgetLoaded(){ markFilesLoaded(); }
+
+function refreshRegBtn(){
+  const r = state.reg;
+  const teamOk = !(bureauSel.value==='농업기술센터' && deptSel.value==='기술보급과') || !!teamSel.value;
+  const ok = !!(r.unit && r.dept && teamOk && r.budgetLoaded);
+  const btn = document.getElementById('completeRegBtn');
+  btn.disabled = !ok;
+  btn.classList.toggle('ok', ok);
+  /* 미충족 항목 실시간 안내 */
+  const missing = [];
+  if(!r.unit) missing.push('① 국·기관 선택');
+  else if(!r.dept) missing.push('① 과 선택');
+  else if(!teamOk) missing.push('① 팀 선택');
+  if(!r.budgetLoaded) missing.push('③ 파일 1건 이상 등록');
+  const el = document.getElementById('regMissing');
+  if(el){
+    if(missing.length){ el.style.display='block'; el.textContent = '남은 항목 : ' + missing.join(' · '); }
+    else { el.style.display='none'; }
+  }
+}
+/* ⓪ 담당자 등록 패널 접기/펼치기 (화면 내 상시 상주 · v2 방식) */
+function setRegPanelOpen(open){
+  document.getElementById('regModal').style.display = open ? 'block' : 'none';
+  document.getElementById('regToggleBtn').textContent = open ? '▾ 접기' : '▸ 펼치기';
+  if(open) document.getElementById('regSection').scrollIntoView({behavior:'smooth', block:'start'});
+}
+document.getElementById('regToggleBtn').addEventListener('click', ()=>{
+  setRegPanelOpen(document.getElementById('regModal').style.display === 'none');
+});
+document.getElementById('completeRegBtn').addEventListener('click', ()=>{
+  if(document.getElementById('completeRegBtn').disabled) return;
+  setRegPanelOpen(false);   /* 완료 후 접기 — 좌측 ⓪에서 언제든 다시 펼침 */
+  onRegistrationComplete();
+});
+
+function orgLine(){
+  const r = state.reg;
+  return r.team ? `${r.unit} · ${r.dept} · ${r.team}` : `${r.unit} · ${r.dept}`;
+}
+function getOrgLine(){
+  const b = state.reg.unit || "(국·기관 미선택)";
+  const d = state.reg.dept || "(과 미선택)";
+  const t = state.reg.team || "";
+  return t ? `${b} ${d} ${t}` : `${b} ${d}`;
+}
+function getStaffLine(){
+  return { t: state.reg.rank || "(직급 미입력)", n: state.reg.name || "(성명 미입력)" };
+}
+
+function openRegModalForEdit(){
+  document.getElementById('regHeadTitle').textContent = '담당자 / 예산서 정보 수정';
+  document.getElementById('completeRegBtn').textContent = '수정완료';
+  bureauSel.value = state.reg.unit || '';
+  bureauSel.dispatchEvent(new Event('change'));
+  if(state.reg.dept){ deptSel.value = state.reg.dept; deptSel.dispatchEvent(new Event('change')); }
+  if(state.reg.team){ teamSel.value = state.reg.team; teamSel.dispatchEvent(new Event('change')); }
+  updateOrgPreview();
+  if(state.reg.budgetLoaded){
+    document.getElementById('budgetEmptyBox').style.display = 'none';
+    document.getElementById('budgetOkBox').style.display = 'block';
+    const items = buildBudgetTreeFromData();
+    document.getElementById('budgetOkList').innerHTML = items.map(b=>`<div class="bitem"><span class="d"></span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${b.name}</span><span class="amt">${b.amount||''}</span></div>`).join('');
+  } else {
+    document.getElementById('budgetEmptyBox').style.display = 'block';
+    document.getElementById('budgetOkBox').style.display = 'none';
+  }
+  document.getElementById('budgetError').style.display = 'none';
+  refreshRegBtn();
+  setRegPanelOpen(true);
+}
+document.getElementById('editRegBtn').addEventListener('click', openRegModalForEdit);
+
+function onRegistrationComplete(){
+  document.getElementById('tbUser').innerHTML = `${orgLine()} · <b>${state.reg.name||''} ${state.reg.rank||''}</b>`;
+  document.getElementById('editRegBtn').style.display = 'inline-block';
+  document.getElementById('regHeadTitle').textContent = 'WorkPotluck 담당자 등록';
+  document.getElementById('completeRegBtn').textContent = '등록완료';
+  state.regDone = true;
+  rebuildScopeTabs();
+  /* 세부사업 트리 : 데모팀(농업기계팀)은 기본값, 그 외 과는 예산서를 파싱한 경우 표시 */
+  const showBudget = state.reg.budgetLoaded && (isMachineryTeam() || budgetData.length > 0);
+  if(showBudget){
+    budgetTree = buildBudgetTreeFromData();
+    document.getElementById('budgetSection').style.display = 'block';
+  } else {
+    budgetTree = [];
+    document.getElementById('budgetSection').style.display = 'none';
+  }
+  renderScopeTabs();
+  renderBudgetTree();
+  renderOtherTree();
+  refreshFileCategoryOptions();
+  if(showBudget && budgetTree.length){
+    const target = budgetTree.find(b=>b.timelineKey==='b3') || budgetTree[0];
+    selectTreeNode(target.id, 'budget');
+  } else {
+    selectScopeTab('CITY');
+  }
+  syncRegFilesToBasket();
+}
+
+/* 등록 모달 ③에서 등록한 파일을 업무 바구니로 반영 → '보고서 변환' 즉시 작동 */
+const announcedRegIds = new Set();
+function syncRegFilesToBasket(){
+  uploadedFiles = uploadedFiles.filter(f=>!f.fromReg);
+  regFiles.forEach(f=>{
+    uploadedFiles.push({
+      name:f.name, content:f.content, isText:f.isText, category:null, categoryId:null,
+      bureau:state.reg.unit||'', dept:state.reg.dept||'', team:state.reg.team||'',
+      fromReg:true
+    });
+    if(!announcedRegIds.has(f.id)){
+      announcedRegIds.add(f.id);
+      chatMessages.push({role:'file', name:f.name, text:maskPII(f.content||''), category:null});
+    }
+  });
+  checkMasking();
+  refreshTreeAccordions();
+  refreshFileCategoryOptions();
+  renderChatLog();
+  autoShowReport();
+}
+
+/* ===================== 첨부파일 업로드 & 누적 ===================== */
+/* ---------- 파일 본문 추출 (pdf / xls / xlsx / hwp / hwpx / docx / txt / csv) ----------
+   CDN 라이브러리를 필요할 때만 로드합니다. 오프라인(폐쇄망)에서는 라이브러리 로드가 실패할 수
+   있으며, 이 경우 파일명만 인식하는 기존 방식으로 자동 폴백합니다. */
+const _libPromises = {};
+function loadLib(url){
+  if(_libPromises[url]) return _libPromises[url];
+  _libPromises[url] = new Promise((res, rej)=>{
+    const sc = document.createElement('script');
+    sc.src = url;
+    sc.onload = ()=>res();
+    sc.onerror = ()=>{ delete _libPromises[url]; rej(new Error('lib load fail: '+url)); };
+    document.head.appendChild(sc);
+  });
+  return _libPromises[url];
+}
+async function ensureXLSX(){
+  if(typeof XLSX === 'undefined'){
+    await loadLib('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
+  }
+}
+async function ensureJSZip(){
+  if(typeof JSZip === 'undefined'){
+    await loadLib('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+  }
+}
+async function extractPdfText(file){
+  if(typeof pdfjsLib === 'undefined'){
+    await loadLib('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+  }
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const pdf = await pdfjsLib.getDocument({data: await file.arrayBuffer()}).promise;
+  const maxPages = Math.min(pdf.numPages, 20);
+  let out = '';
+  for(let i=1; i<=maxPages; i++){
+    const page = await pdf.getPage(i);
+    const tc = await page.getTextContent();
+    let pageText = '';
+    tc.items.forEach(it=>{ pageText += it.str + (it.hasEOL ? '\n' : ''); });
+    out += pageText.trim() + '\n\n';
+  }
+  if(pdf.numPages > maxPages) out += `\n… (총 ${pdf.numPages}쪽 중 ${maxPages}쪽까지 추출)`;
+  return out.trim();
+}
+async function extractXlsText(file){
+  await ensureXLSX();
+  const wb = XLSX.read(await file.arrayBuffer(), {type:'array'});
+  let out = '';
+  wb.SheetNames.slice(0,5).forEach(sn=>{
+    const tsv = XLSX.utils.sheet_to_csv(wb.Sheets[sn], {FS:'\t'}).trim();
+    if(tsv) out += `[시트: ${sn}]\n${tsv}\n\n`;
+  });
+  return out.trim();
+}
+async function extractHwpText(file){
+  /* HWP v5(바이너리)는 CFB 컨테이너 — SheetJS의 CFB 파서로 내장 미리보기(PrvText, UTF-16LE)를 읽음 */
+  await ensureXLSX();
+  const cfb = XLSX.CFB.read(new Uint8Array(await file.arrayBuffer()), {type:'array'});
+  const entry = XLSX.CFB.find(cfb, 'PrvText') || XLSX.CFB.find(cfb, '/PrvText');
+  if(!entry || !entry.content) throw new Error('PrvText 없음');
+  const bytes = entry.content instanceof Uint8Array ? entry.content : new Uint8Array(entry.content);
+  const text = new TextDecoder('utf-16le').decode(bytes).replace(/\u0000+/g,'\n').trim();
+  if(!text) throw new Error('빈 미리보기');
+  return text + '\n\n※ hwp 내장 미리보기 텍스트 기준 추출입니다. 전체 본문이 필요하면 hwpx로 저장 후 업로드해 주세요.';
+}
+async function extractHwpxText(file){
+  await ensureJSZip();
+  const zip = await JSZip.loadAsync(await file.arrayBuffer());
+  const prv = zip.file('Preview/PrvText.txt');
+  if(prv){
+    const t = (await prv.async('string')).trim();
+    if(t) return t;
+  }
+  const names = Object.keys(zip.files).filter(nm=>/^Contents\/section\d+\.xml$/i.test(nm)).sort();
+  let out = '';
+  for(const name of names){
+    const xml = await zip.files[name].async('string');
+    out += xml.replace(/<hp:p[ >]/g,'\n<hp:p ').replace(/<[^>]+>/g,'').replace(/[ \t]+/g,' ').trim() + '\n';
+  }
+  if(!out.trim()) throw new Error('본문 없음');
+  return out.trim();
+}
+async function extractDocxText(file){
+  await ensureJSZip();
+  const zip = await JSZip.loadAsync(await file.arrayBuffer());
+  const doc = zip.file('word/document.xml');
+  if(!doc) throw new Error('document.xml 없음');
+  const xml = await doc.async('string');
+  return xml.replace(/<w:p[ >]/g,'\n<w:p ').replace(/<[^>]+>/g,'').replace(/[ \t]+/g,' ').trim();
+}
+/* 확장자별 본문 추출 — 성공 시 텍스트, 실패/미지원 시 null */
+async function extractFileText(file){
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  try{
+    if(ext==='txt' || ext==='csv') return (await file.text()).trim();
+    if(ext==='pdf')  return await extractPdfText(file);
+    if(ext==='xls' || ext==='xlsx' || ext==='xlsm') return await extractXlsText(file);
+    if(ext==='hwp')  return await extractHwpText(file);
+    if(ext==='hwpx') return await extractHwpxText(file);
+    if(ext==='docx') return await extractDocxText(file);
+  }catch(err){
+    console.warn('본문 추출 실패:', file.name, err);
+    return null;
+  }
+  return null;
+}
+
+let uploadedFiles = [];
+
+function flattenTreeEntries(nodes, depth, out){
+  out = out || [];
+  depth = depth || 0;
+  nodes.forEach(n=>{
+    out.push({id:n.id, name:n.name, depth});
+    if(n.children && n.children.length) flattenTreeEntries(n.children, depth+1, out);
+  });
+  return out;
+}
+let lastFileCategoryId = null; /* 마지막으로 실제 선택되어 있던 유효한 세부사업/기타업무 카테고리의 노드ID (이름이 아닌 ID로 관리해
+  동일/유사 이름·재렌더링에도 항상 정확히 같은 폴더를 가리키도록 함) */
+function updateCatTargetHint(entries){
+  const hint = document.getElementById('catTargetHint');
+  if(!hint) return;
+  const found = entries.find(e=>e.id===lastFileCategoryId);
+  hint.textContent = found ? `📌 지금 올리는 자료는 「${found.name}」에 담깁니다` : '';
+}
+function refreshFileCategoryOptions(){
+  const entries = flattenTreeEntries(budgetTree).concat(flattenTreeEntries(otherWorkList));
+  const sel = document.getElementById('fileCategory');
+  const ids = entries.map(e=>e.id);
+  const currentNode = findNode(budgetTree, state.selectedNodeId) || findNode(otherWorkList, state.selectedNodeId);
+  /* 상단 'AI 업무 협업 범위' 탭(파주시 전체/농업기술센터 등)처럼 트리 카테고리가 아닌 곳으로 이동했을 때는
+     드롭다운을 조용히 목록 맨 위 항목으로 바꾸지 않고, 마지막으로 선택돼 있던 유효한 카테고리를 그대로 유지한다.
+     (이전 버그: 조직도 탭 이동 후 업로드하면 엉뚱한 첫번째 카테고리로 파일이 들어갔음) */
+  if(currentNode && ids.includes(currentNode.id)){
+    lastFileCategoryId = currentNode.id;
+  } else if(!lastFileCategoryId || !ids.includes(lastFileCategoryId)){
+    lastFileCategoryId = ids[0] || null;
+  }
+  sel.innerHTML = entries.map(e=>{
+    const indent = e.depth>0 ? '　'.repeat(e.depth) + '└ ' : '';
+    return `<option value="${e.id}">${indent}${e.name}</option>`;
+  }).join('');
+  if(lastFileCategoryId) sel.value = lastFileCategoryId;
+  updateCatTargetHint(entries);
+}
+document.getElementById('fileCategory').addEventListener('change', (e)=>{
+  lastFileCategoryId = e.target.value; /* 드롭다운을 수동으로 바꾼 경우에도 그 선택을 기억 */
+  const entries = flattenTreeEntries(budgetTree).concat(flattenTreeEntries(otherWorkList));
+  updateCatTargetHint(entries);
+});
+
+document.getElementById('fileInput').addEventListener('change', (e)=>{
+  const files = Array.from(e.target.files);
+  const catSel = document.getElementById('fileCategory');
+  const categoryId = catSel.value || null;
+  const categoryNode = categoryId ? (findNode(budgetTree, categoryId) || findNode(otherWorkList, categoryId)) : null;
+  const category = categoryNode ? categoryNode.name : null; /* 표시용 이름 (매칭에는 categoryId를 사용) */
+  const bureau = state.reg.unit || '';
+  const dept = state.reg.dept || '';
+  const team = state.reg.team || '';
+  files.forEach(async (file)=>{
+    /* pdf·xls·hwp·hwpx·docx 등 지원 형식의 본문을 추출해 담음 (실패 시 파일명만 인식) */
+    let text = null;
+    try{ text = await extractFileText(file); }catch(err){}
+    const ok = !!(text && text.trim());
+    uploadedFiles.push({name:file.name, content: ok?text:'', isText: ok, category, categoryId, bureau, dept, team});
+    chatMessages.push({role:'file', name:file.name, text: ok?maskPII(text):'', category});
+    checkMasking();
+    refreshTreeAccordions();
+    renderChatLog();   /* 추출 원문을 채팅창에 즉시 표시 */
+    autoShowReport();  /* 자료가 들어오면 보고서 변환을 즉시 생성 */
+  });
+  e.target.value = '';
+});
+
+/* 자료가 입력되면 '보고서 변환'을 즉시 생성·표시 (기본 형식: 공문서) */
+function autoShowReport(){
+  if(uploadedFiles.length === 0) return;
+  if(!state.selectedReport){
+    state.selectedReport = 'official';
+    renderReportButtons();
+  }
+  renderOutput(state.selectedReport);
+}
+
+/* 파일목록은 별도 표시창 없이, 해당 세부사업/기타업무 클릭 시 아코디언에서만 노출됨 */
+function refreshTreeAccordions(){
+  renderBudgetTree();
+  renderOtherTree();
+}
+
+function fileMatchesScope(f, scope){
+  if(!scope || scope === 'CITY') return true;
+  if(scope.startsWith('TEAM:'))   return f.team   === scope.slice(5);
+  if(scope.startsWith('DEPT:'))   return f.dept   === scope.slice(5);
+  if(scope.startsWith('BUREAU:')) return f.bureau === scope.slice(7);
+  if(scope.startsWith('NODE:'))   return f.categoryId === scope.slice(5);
+  return f.category === scope; /* 구버전 호환용 안전장치 */
+}
+function getAccumulatedText(scope){
+  let text = '';
+  uploadedFiles.forEach(f=>{
+    if(!fileMatchesScope(f, scope)) return;
+    if(f.isText){
+      text += `\n\n[첨부: ${f.name}${f.category?` / ${f.category}`:''}]\n${f.content}`;
+    } else {
+      text += `\n\n[첨부: ${f.name}${f.category?` / ${f.category}`:''} - 본문 추출 실패(스캔본 등), 파일명만 인식됨]`;
+    }
+  });
+  return text;
+}
+
+function checkMasking(){
+  const txt = getAccumulatedText();
+  const hasPhone = /01[0-9]-?\d{3,4}-?\d{4}/.test(txt);
+  document.getElementById('maskNote').classList.toggle('show', hasPhone);
+}
+function maskPII(text){
+  return text.replace(/01[0-9]-?\d{3,4}-?\d{4}/g, '010-****-****')
+             .replace(/\d{6}-[1-4]\d{6}/g, '******-*******');
+}
+
+/* ===================== 자료 파싱 유틸 ===================== */
+function parseBasket(){
+  const raw = getAccumulatedText().trim();
+  const text = maskPII(raw);
+  const lines = text.split('\n').map(l=>l.trim()).filter(Boolean);
+  return {raw:text, lines};
+}
+function todayStr(){
+  const d = new Date();
+  return `${d.getFullYear()}. ${d.getMonth()+1}. ${d.getDate()}.`;
+}
+function regNo(){
+  return `${state.reg.dept||'부서미지정'}-${1000+Math.floor(Math.random()*8999)}`;
+}
+
+/* ===================== 출력 생성기 =====================
+   데모팀(농업기술센터-기술보급과-농업기계팀) 등록 시 : 사전 준비된 농기계 사업 데모 문서
+   그 외 모든 국·과·팀 등록 시   : 등록 소속 + 첨부 자료 본문을 반영한 범용 자동 초안        */
+function isDemoTeamReg(){
+  return state.reg.unit==='농업기술센터' && state.reg.dept==='기술보급과' && state.reg.team==='농업기계팀';
+}
+function basketDigest(p, maxLines){
+  const files = uploadedFiles.map(f=>f.name);
+  const lines = (p.lines||[]).filter(l=>!l.startsWith('[첨부:')).slice(0, maxLines||6);
+  return {files, lines};
+}
+function digestBullets(d, prefix){
+  if(d.lines.length) return d.lines.map(l=>`${prefix}${l.replace(/^[-•○□▣·]\s*/,'')}`).join('\n');
+  return `${prefix}첨부 자료 ${d.files.length}건 접수 (본문 추출 실패 파일은 파일명만 인식)`;
+}
+function attachList(files){
+  if(files.length===0) return '붙임  없음.  끝.';
+  return '붙임  ' + files.map((f,i)=>`${i+1}. ${f} 1부.`).join('\n      ') + '  끝.';
+}
+function genOfficialGeneric(p){
+  const {t,n} = getStaffLine();
+  const d = basketDigest(p, 5);
+  let body = `수      신 : 수신자 참조\n(경    유)\n`;
+  body += `제      목 : ${state.reg.dept||'우리 부서'} 소관 업무 관련 협조 요청 (첨부 자료 기반 자동 초안)\n\n`;
+  body += `1. ${getOrgLine()} 소관 업무와 관련입니다.\n\n`;
+  body += `2. 첨부한 자료를 바탕으로 주요 내용을 아래와 같이 알려드리오니 업무에 참고하시기 바랍니다.\n`;
+  body += digestBullets(d, '   - ') + '\n\n';
+  body += `3. 세부 사항은 붙임 자료를 참고하여 주시기 바라며, 문의사항은 담당자에게 연락 바랍니다.\n\n`;
+  body += attachList(d.files);
+  body += `\n\n담당자 : ${getOrgLine()} ${t} ${n}`;
+  return {title:'공문서', body};
+}
+function genWeeklyGeneric(p){
+  const today = new Date(); const end = new Date(today); end.setDate(today.getDate()+6);
+  const fmt = dt => `${dt.getFullYear()}. ${dt.getMonth()+1}. ${dt.getDate()}.`;
+  const d = basketDigest(p, 5);
+  let body = `주 간 업 무 보 고\n(${fmt(today)} ~ ${fmt(end)})\n\n`;
+  body += `[${state.reg.unit||'소속기관'}]\n\n`;
+  body += `▣ ${state.reg.dept||''}${state.reg.team?' '+state.reg.team:''}\n\n`;
+  body += `1. 첨부 자료 기반 주간 추진사항\n`;
+  body += digestBullets(d, '   ○ ') + '\n';
+  body += `   ○ 등록 자료 : ${d.files.length ? d.files.join(', ') : '없음'}\n`;
+  body += `   ○ 향후계획 : 자료 검토 결과에 따라 세부 추진계획 수립 예정`;
+  return {title:'주간업무보고', body};
+}
+function genUrgentGeneric(p){
+  const d = basketDigest(p, 5);
+  let body = `${state.reg.unit||'소속기관'}\n`;
+  body += `${state.reg.dept||''} 소관 현안 보고 (첨부 자료 기반 자동 초안)\n\n`;
+  body += `□ 현황\n${digestBullets(d,'  ○ ')}\n\n`;
+  body += `□ 조치계획\n  ○ 첨부 자료 검토 결과를 토대로 세부 조치방안 마련\n  ○ 관계 부서 협의 및 필요 시 방침 결재 추진\n\n`;
+  body += `□ 행정사항\n  ○ 등록 자료 : ${d.files.length ? d.files.join(', ') : '없음'}`;
+  return {title:'현안보고', body};
+}
+function genMemoGeneric(p){
+  const {t,n} = getStaffLine();
+  const today = new Date();
+  const weekday = ['일','월','화','수','목','금','토'][today.getDay()];
+  const dateStr = `'${String(today.getFullYear()).slice(2)}. ${today.getMonth()+1}. ${today.getDate()}.(${weekday})`;
+  const d = basketDigest(p, 4);
+  let body = `주 요 사 항 보 고\n`;
+  body += `${dateStr}                                    ${getOrgLine()}\n`;
+  body += `                                          ${t} ${n}\n\n`;
+  body += `□ 개요\n  ○ 첨부 자료 ${d.files.length}건 기반 주요사항 보고 (규칙기반 자동 초안)\n\n`;
+  body += `□ 주요내용\n${digestBullets(d,'  ○ ')}\n\n`;
+  body += `□ 향후계획\n  ○ 자료 검토 후 세부 추진방안 보고 예정`;
+  return {title:'쪽지보고', body};
+}
+function genPressGeneric(p){
+  const d = basketDigest(p, 4);
+  let body = `『${state.reg.dept||'파주시'} 주요 업무 추진』(보도자료 초안 자동 구성)\n\n`;
+  body += `파주시 ${getOrgLine()}는 소관 업무를 차질 없이 추진하고 있다고 밝혔다.\n\n`;
+  body += `첨부 자료 기준 주요 내용은 다음과 같다.\n${digestBullets(d,'- ')}\n\n`;
+  body += `※ 본 자료는 첨부 자료를 기반으로 한 규칙기반 자동 초안으로, 배포 전 담당부서 확인·수정이 필요합니다.`;
+  return {title:'보도자료(초안)', body};
+}
+function genHandoverGeneric(p){
+  const {t,n} = getStaffLine();
+  const d = basketDigest(p, 6);
+  let body = `1. 인계 개요\n`;
+  body += `   ○ 인계부서 : ${getOrgLine()}\n`;
+  body += `   ○ 전임자(인계자) : ${n} ${t}　　후임자(인수자) : ______________\n`;
+  body += `   ○ 인계일자 : ${todayStr()}\n\n`;
+  body += `2. 담당업무 현황\n`;
+  body += budgetSummaryLines().join('\n') + `\n\n`;
+  body += `3. 그간 추진사항 (첨부 자료 기반 자동 정리)\n`;
+  body += digestBullets(d, '   ○ ') + '\n\n';
+  body += `4. 향후 추진계획 (인수 후 처리해 주셔야 할 사항)\n`;
+  body += `   ○ 첨부 자료 검토 후 잔여 절차 확인 및 일정 수립\n`;
+  body += `   ○ 진행 중인 결재·협의 건 인수 확인\n\n`;
+  body += `5. 인계 시 유의사항\n`;
+  body += `   ○ 개인정보가 포함된 서류는 반드시 마스킹 후 공유·보관할 것\n`;
+  body += `   ○ 미결 사항은 인수인계 확인서에 별도 기재할 것\n\n`;
+  body += `6. 관련 자료 목록 (업무 바구니 첨부 기준)\n`;
+  body += fileNameLines().join('\n') + `\n\n`;
+  body += `7. 서명\n`;
+  body += `   인계자 : ${n} ${t}　　　(서명)　　　　확인자(팀장) : ______________　(서명)\n`;
+  body += `   인수자 : ______________　(서명)　　　확인자(과장) : ______________　(서명)`;
+  return {title:'업무 인수인계서', body};
+}
+function genAbsenceGeneric(p){
+  const {t,n} = getStaffLine();
+  const d = basketDigest(p, 6);
+  let body = `1. 부재 개요\n`;
+  body += `   ○ 부 서 : ${getOrgLine()}\n`;
+  body += `   ○ 부재자 : ${n} ${t}\n`;
+  body += `   ○ 부재기간 : ○○○○. ○○. ○○.(요일) ~ ○○. ○○.(요일)  ※ 실제 부재기간에 맞게 수정하여 사용하세요\n`;
+  body += `   ○ 부재사유 : 연가 / 출장 / 교육 등 (해당 사유 기재)\n`;
+  body += `   ○ 대 직 자 : ______________ (직급 : ______)\n`;
+  body += `   ○ 작성일자 : ${todayStr()}\n\n`;
+  body += `2. 부재중 처리가 필요한 업무\n`;
+  body += budgetSummaryLines().join('\n') + `\n\n`;
+  body += `3. 업무별 대직 처리 방법 (첨부 자료 기반 자동 정리)\n`;
+  body += digestBullets(d, '   ○ ') + '\n';
+  body += `   ○ 단순 안내·접수는 대직자가 즉시 처리하고, 선정·집행 등 주요 결정은 복귀 후 처리\n\n`;
+  body += `4. 비상연락망\n`;
+  body += `   ○ 부재자 휴대전화 : 010-****-**** (긴급 시에만 연락)\n`;
+  body += `   ○ 팀장 : ______________　　○ 과(대표) : ______________\n\n`;
+  body += `5. 유의사항\n`;
+  body += `   ○ 개인정보(연락처·계좌번호 등)는 대직자도 마스킹 원칙을 준수하여 취급할 것\n`;
+  body += `   ○ 본 계획서는 부서장·팀장·팀원이 함께 열람하며, 부재 종료 시 갱신·삭제합니다.`;
+  return {title:'부재중 대직업무 계획서', body};
+}
+
+function genOfficial(p){
+  if(!isDemoTeamReg()) return genOfficialGeneric(p);
+  const {t,n} = getStaffLine();
+  let body = `수      신 : 수신자 참조\n(경    유)\n`;
+  body += `제      목 : 2026년 노후 농업기계 미세먼지 저감대책 지원사업 신청 안내\n\n`;
+  body += `1. 「2026년 노후 농업기계 미세먼지 저감대책 지원사업」 시행지침(농림축산식품부)과 관련입니다.\n\n`;
+  body += `2. 노후 경유 농업기계(트랙터·콤바인) 조기폐차 지원을 위한 「2026년 노후 농업기계 미세먼지 저감대책 지원사업」 신청을 아래와 같이 접수하오니, 참여를 희망하는 농업인께서는 신청서를 작성하여 2026. 4. 17.(금)까지 제출하여 주시기 바랍니다.\n`;
+  body += `   - 지원대상 : 2012. 12. 31. 이전 생산된 트랙터·콤바인을 6개월 이상 소유한 농업인\n`;
+  body += `   - 지원금액 : 트랙터 100~649만원 / 콤바인 100~1,773만원 (제조연도·규격별 차등)\n`;
+  body += `   - 접수처 : 농업기술센터 기술보급과 농업기계팀(031-940-5260), 임대사업소 북부지소\n\n`;
+  body += `3. 아울러 관내 폐차 지정업소(월롱면 소재)를 통해서만 폐차가 가능함을 안내하오니 업무에 참고하시기 바랍니다.\n\n`;
+  body += `붙임  1. 신청서(면세유 공급보류 및 말소 신청서 포함) 1부.\n`;
+  body += `      2. 보조금 산정 기준 1부.\n`;
+  body += `      3. 2026년 노후 농업기계 미세먼지 저감대책 지원사업 지침 1부.  끝.`;
+  body += `\n\n담당자 : ${getOrgLine()} ${t} ${n}`;
+  return {title:"공문서", body};
+}
+function genWeekly(p){
+  if(!isDemoTeamReg()) return genWeeklyGeneric(p);
+  const today = new Date();
+  const end = new Date(today); end.setDate(today.getDate()+6);
+  const fmt = d => `${d.getFullYear()}. ${d.getMonth()+1}. ${d.getDate()}.`;
+  let body = `주 간 업 무 보 고\n(${fmt(today)} ~ ${fmt(end)})\n\n`;
+  body += `[농업기술센터]\n\n`;
+  body += `▣ 기술보급과 농업기계팀\n\n`;
+  body += `1. 노후 농업기계 미세먼지 저감대책 지원사업 추진\n`;
+  body += `   ○ 사 업 명 : 노후 농업기계 미세먼지 저감대책 지원사업\n`;
+  body += `   ○ 사 업 비 : 22,000천원(국비 11,000 / 도비 3,300 / 시비 7,700)\n`;
+  body += `   ○ 사 업 량 : 신청·접수 진행 중 (2025년 실적 : 선정 5건 / 신청 19건, 선정률 26.3%)\n`;
+  body += `   ○ 추진현황 : 신청 접수 진행 중 (2026. 3. 30. ~ 4. 17.), 관내 폐차 지정업소 1개소(월롱면) 운영 중\n`;
+  body += `   ○ 향후계획 : 접수 마감 후 서류 심사 및 대상자 선정(4월) → 폐차 이행 및 보조금 지급(5~10월) → 정산(11월)`;
+  return {title:"주간업무보고", body};
+}
+function genUrgent(p){
+  if(!isDemoTeamReg()) return genUrgentGeneric(p);
+  let body = `농업기술센터\n`;
+  body += `노후 농업기계 미세먼지 저감대책 지원사업 예산 부족 현안 보고                              기술보급과\n\n`;
+  body += `주요내용\n\n`;
+  body += `□ 현황과 문제점\n`;
+  body += `  ○ 2025년 신청 19건(트랙터 8, 콤바인 11) 중 5건만 선정, 선정률 26.3%에 그침\n`;
+  body += `    - 예산 부족으로 다수 신청자가 지원받지 못함\n`;
+  body += `  ○ 2026년 예산은 22,000천원으로 전년(25,050천원) 대비 3,050천원 감액 편성\n`;
+  body += `    - 신청 수요 대비 예산 부족이 더 심화될 우려\n\n`;
+  body += `□ 해결방안\n`;
+  body += `  ○ 추경 편성을 통한 예산 증액 검토\n`;
+  body += `  ○ 신청 초과 시 우선순위 기준(생산연도가 오래된 순 등) 마련\n`;
+  body += `    - 관련 조례 개정(제7조⑤항 신설) 추진 중\n`;
+  body += `  ○ 관내 폐차 지정업소(월롱면) 외 인근 시·군 업소 병행 활용 검토\n\n`;
+  body += `□ 기대효과\n`;
+  body += `  ○ 노후 농업기계 조기폐차를 통한 미세먼지 저감 효과 확대\n`;
+  body += `  ○ 형평성 있는 지원대상자 선정으로 민원 최소화\n`;
+  body += `  ○ 안정적 사업 추진을 통한 농업인 만족도 제고\n\n`;
+  body += `붙임  1. 2025년 사업 집행현황 1부.\n      2. 2026년 예산서 1부.  끝.`;
+  return {title:"현안보고", body};
+}
+function genMemo(p){
+  if(!isDemoTeamReg()) return genMemoGeneric(p);
+  const {t,n} = getStaffLine();
+  const today = new Date();
+  const weekday = ['일','월','화','수','목','금','토'][today.getDay()];
+  const dateStr = `'${String(today.getFullYear()).slice(2)}. ${today.getMonth()+1}. ${today.getDate()}.(${weekday})`;
+  let body = `주 요 사 항 보 고\n`;
+  body += `${dateStr}                                    ${getOrgLine()}\n`;
+  body += `                                          ${t} ${n}(031-940-5260)\n\n`;
+  body += `□ 개요\n`;
+  body += `  ○ 사 업 명 : 2026년 노후 농업기계 미세먼지 저감대책 지원사업\n`;
+  body += `  ○ 신청기간 : 2026. 3. 30.(월) ~ 4. 17.(금)\n`;
+  body += `  ○ 예 산 액 : 22,000천원(국비 11,000 / 도비 3,300 / 시비 7,700)\n\n`;
+  body += `□ 현재 추진현황\n`;
+  body += `  ○ 신청 접수 진행 중이며, 관내 폐차 지정업소 1개소(월롱면 소재)가 운영 중\n`;
+  body += `  ○ 2025년 실적 : 신청 19건(트랙터 8 / 콤바인 11) 중 5건 선정, 선정률 26.3%\n`;
+  body += `  ○ 접수 마감(4.17.) 이후 서류 심사·대상자 선정(4월말) → 폐차 이행 및 보조금 지급(5~10월) 순으로 진행 예정\n\n`;
+  body += `□ (예상)건의사항\n`;
+  body += `  ○ 2025년 선정률 26.3%(신청 19건 중 5건 선정)로 예산 부족 → 증액 검토 필요\n`;
+  body += `  ○ 관내 폐차 지정업소(월롱면 소재) 1개소로 처리물량 집중 우려 → 인근 시·군 업소 병행 검토`;
+  return {title:"쪽지보고", body};
+}
+
+function genPress(p){
+  if(!isDemoTeamReg()) return genPressGeneric(p);
+  const today = new Date();
+  const dateStr = `${today.getFullYear()}. ${today.getMonth()+1}. ${today.getDate()}.`;
+  let body = `『노후 경유 농기계, 조기폐차로 바꾸면 최대 1,773만원 지원』\n`;
+  body += `– 파주시, 2026년 노후 농업기계 미세먼지 저감대책 지원사업 신청 접수(3.30.~4.17.) –\n\n`;
+  body += `파주시(시장 ○○○)는 미세먼지 저감과 농업기계 안전사고 예방을 위해 「2026년 노후 농업기계 미세먼지 저감대책 지원사업」 신청을 3월 30일(월)부터 4월 17일(금)까지 접수한다고 밝혔다.\n\n`;
+  body += `이번 사업은 2012년 12월 31일 이전 생산된 노후 경유 트랙터·콤바인을 조기 폐차하는 농업인에게 보조금을 지원하는 사업으로, 트랙터는 최대 649만원, 콤바인은 최대 1,773만원까지 제조연도와 규격에 따라 차등 지급된다. 지원 대상은 관련 기계를 6개월 이상 소유한 농업인이며, 국비·도비·시비를 합쳐 총 22,000만원(2만 2천만 원) 규모의 예산이 투입된다.\n\n`;
+  body += `시 관계자는 “노후 농기계는 배출가스 저감장치가 없어 미세먼지 발생은 물론 잦은 고장으로 인한 농작업 안전사고 위험도 크다”며, “이번 지원사업을 통해 친환경·안전 영농 기반을 확대해 나가겠다”고 밝혔다.\n\n`;
+  body += `한편 시는 지난해(2025년) 같은 사업에서 19건의 신청 중 5건을 선정(선정률 26.3%)한 바 있어, 올해는 신청 수요에 대비해 예산 확대 등 보완 방안도 함께 검토하고 있다고 설명했다.\n\n`;
+  body += `신청은 농업기술센터 기술보급과 농업기계팀(031-940-5260) 또는 임대사업소 북부지소(파평면)를 통해 접수하며, 자세한 사항은 파주시 홈페이지 고시공고란에서 확인할 수 있다.\n\n`;
+  body += `※ 본 자료는 실제 배포 전 검토용 초안이며, 시장 성명·수치는 담당부서 확인 후 최종 확정됩니다.`;
+  return {title:"보도자료(초안)", body};
+}
+
+const GENERATORS = {
+  official: {label:"공문서", fn:genOfficial},
+  weekly:   {label:"주간업무보고", fn:genWeekly},
+  urgent:   {label:"현안보고", fn:genUrgent},
+  memo:     {label:"쪽지보고", fn:genMemo},
+  press:    {label:"보도자료", fn:genPress},
+  handover: {label:"인수인계서", fn:genHandover},
+  absence:  {label:"부재중 대직", fn:genAbsence},
+};
+
+/* ===================== 인수인계서 / 부재중 대직업무 계획서 생성기 ===================== */
+function budgetSummaryLines(){
+  if(!budgetTree || !budgetTree.length) return ['  ○ 등록된 담당세부사업이 없습니다. (①에서 예산서를 첨부하면 자동 등록됩니다)'];
+  return budgetTree.map(b=>`  ○ ${b.name} : ${b.amount||'-'}${b.status?` (${b.status})`:''}`);
+}
+function fileNameLines(){
+  if(!uploadedFiles || !uploadedFiles.length) return ['  ○ 첨부된 자료가 없습니다.'];
+  return uploadedFiles.slice(0,12).map(f=>`  ○ ${f.name}${f.category?` (${f.category})`:''}`);
+}
+function genHandover(p){
+  if(!isDemoTeamReg()) return genHandoverGeneric(p);
+  const {t,n} = getStaffLine();
+  const org = getOrgLine();
+  const today = todayStr();
+  let body = `1. 인계 개요\n`;
+  body += `   ○ 인계부서 : ${org}\n`;
+  body += `   ○ 전임자(인계자) : ${n} ${t}　　후임자(인수자) : ______________\n`;
+  body += `   ○ 인계일자 : ${today}\n\n`;
+  body += `2. 담당업무 현황 (세부사업별 예산·진행 상태)\n`;
+  body += budgetSummaryLines().join('\n') + `\n\n`;
+  body += `3. 그간 추진사항 (노후 농업기계 미세먼지 저감대책 지원사업 중심)\n`;
+  body += `   ○ 2025년 : 신청 19건(트랙터 8 / 콤바인 11) 중 5건 선정·집행 완료, 선정률 26.3%\n`;
+  body += `   ○ 2025년 폐차업소 임시 지정(대동공업 신파주대리점 등 3곳) 운영 후, 2026년부터 월롱면 소재 업소 1개소가 정식 지정되어 운영 중\n`;
+  body += `   ○ 2026년 예산 22,000천원(국비 11,000 / 도비 3,300 / 시비 7,700) 편성 — 전년(25,050천원) 대비 3,050천원 감액\n`;
+  body += `   ○ 2026. 3. 30.(월) ~ 4. 17.(금) 신청 접수 진행\n`;
+  body += `   ○ 「파주시 노후 농기계 조기 폐기 지원 조례안」 제정 절차 진행 중 (부서검토의견 제출 완료, 우선순위 기준 신설안 반영)\n\n`;
+  body += `4. 향후 추진계획 (인수 후 처리해 주셔야 할 사항)\n`;
+  body += `   ○ 2026. 4월말 : 신청 서류 심사 및 대상자 선정 (생산연도 오래된 순 우선)\n`;
+  body += `   ○ 2026. 5. ~ 10. : 대상자 폐차 이행 확인 및 보조금 산정·지급\n`;
+  body += `   ○ 2026. 11. : 정산 및 결과보고서 제출\n`;
+  body += `   ○ 조례안 : 입법예고(20일 이상) → 조례·규칙심의회 심의 → 시의회 제출·의결 → 공포 절차 순차 진행 예정\n\n`;
+  body += `5. 인계 시 유의사항\n`;
+  body += `   ○ 2025년 선정률(26.3%)이 낮았던 점을 감안, 신청 마감 후 예산 부족이 재발할 가능성이 있어 추경 편성 여부를 사전 확인할 것\n`;
+  body += `   ○ 관내 폐차 지정업소가 1개소뿐이라 물량이 집중될 수 있으므로 인근 시·군 업소 병행 활용을 검토할 것\n`;
+  body += `   ○ 개인정보(신청인 연락처·계좌 등)가 포함된 서류는 반드시 마스킹 후 공유·보관할 것\n\n`;
+  body += `6. 관련 자료 목록 (업무 바구니 첨부 기준)\n`;
+  body += fileNameLines().join('\n') + `\n\n`;
+  body += `7. 서명\n`;
+  body += `   인계자 : ${n} ${t}　　　(서명)　　　　확인자(팀장) : ______________　(서명)\n`;
+  body += `   인수자 : ______________　(서명)　　　확인자(과장) : ______________　(서명)`;
+  return {title:"업무 인수인계서", body};
+}
+function genAbsence(p){
+  if(!isDemoTeamReg()) return genAbsenceGeneric(p);
+  const {t,n} = getStaffLine();
+  const org = getOrgLine();
+  const today = todayStr();
+  let body = `1. 부재 개요\n`;
+  body += `   ○ 부 서 : ${org}\n`;
+  body += `   ○ 부재자 : ${n} ${t}\n`;
+  body += `   ○ 부재기간 : ○○○○. ○○. ○○.(요일) ~ ○○. ○○.(요일)  ※ 실제 부재기간에 맞게 수정하여 사용하세요\n`;
+  body += `   ○ 부재사유 : 연가 / 출장 / 교육 등 (해당 사유 기재)\n`;
+  body += `   ○ 대 직 자 : ______________ (직급 : ______)\n`;
+  body += `   ○ 작성일자 : ${today}\n\n`;
+  body += `2. 부재중 처리가 필요한 업무 (담당세부사업 현황)\n`;
+  body += budgetSummaryLines().join('\n') + `\n\n`;
+  body += `3. 업무별 대직 처리 방법\n`;
+  body += `   ○ 노후 농업기계 미세먼지 저감대책 지원사업\n`;
+  body += `     - 현재 단계 : 신청 접수 진행 중 (2026. 3. 30. ~ 4. 17.)\n`;
+  body += `     - 대직 처리 : 접수기간 중 신청서 접수·구비서류 확인만 진행하고, 대상자 선정 등 주요 결정 사항은 복귀 후 처리\n`;
+  body += `     - 문의 폭주 시 안내 : "담당자 부재중이며, ${'{복귀일}'} 이후 순차 확인 예정"으로 안내\n`;
+  body += `   ○ 파주시 노후 농기계 조기 폐기 지원 조례안 제정 건\n`;
+  body += `     - 현재 단계 : 의견조회 및 의견반영 단계\n`;
+  body += `     - 대직 처리 : 법제부서·시의회 관련 연락이 오면 접수만 하고 회신은 보류, 복귀 후 처리\n`;
+  body += `   ○ 그 외 민원·전화 문의\n`;
+  body += `     - 단순 안내(신청 자격, 접수처, 서류 목록)는 사업시행지침을 참고하여 대직자가 즉시 안내 가능\n\n`;
+  body += `4. 비상연락망\n`;
+  body += `   ○ 부재자 휴대전화 : 010-****-**** (긴급 시에만 연락)\n`;
+  body += `   ○ 농업기계팀장 : 031-940-52** \n`;
+  body += `   ○ 기술보급과(대표) : 031-940-5260\n\n`;
+  body += `5. 유의사항\n`;
+  body += `   ○ 신청 서류에 포함된 개인정보(연락처·계좌번호 등)는 대직자도 마스킹 원칙을 준수하여 취급할 것\n`;
+  body += `   ○ 예산·선정 관련 최종 결정은 부재자 복귀 후 처리를 원칙으로 하며, 대직자는 접수·안내 범위 내에서만 처리\n`;
+  body += `   ○ 본 계획서는 부서장·팀장·팀원이 함께 열람하며, 부재 종료 시 갱신·삭제합니다.`;
+  return {title:"부재중 대직업무 계획서", body};
+}
+
+
+/* ===================== 우측 보고서 변환 버튼 / 출력 ===================== */
+const reportBtnGrid = document.getElementById('reportBtnGrid');
+function renderReportButtons(){
+  reportBtnGrid.innerHTML = '';
+  Object.entries(GENERATORS).forEach(([key,g])=>{
+    const btn = document.createElement('button');
+    btn.className = 'rbtn' + (state.selectedReport===key ? ' active':'');
+    btn.textContent = g.label;
+    btn.addEventListener('click', ()=>{
+      state.selectedReport = key;
+      renderReportButtons();
+      renderOutput(key);
+    });
+    reportBtnGrid.appendChild(btn);
+  });
+}
+renderReportButtons();
+
+let lastPlainText = '';
+let lastTitle = '';
+/* 수기 작성 시 통상 소요시간(분) — 효과 산정 근거 */
+const TIME_SAVED = {official:25, weekly:30, urgent:40, memo:20, press:45, handover:90, absence:35};
+let savedCount = 0, savedMinutes = 0;
+const countedDocs = new Set();
+function addSavedEffect(key){
+  if(countedDocs.has(key)) return;
+  countedDocs.add(key);
+  savedCount += 1;
+  savedMinutes += (TIME_SAVED[key] || 20);
+}
+function effectLine(){
+  if(savedCount === 0) return '';
+  const h = Math.floor(savedMinutes/60), m = savedMinutes%60;
+  const t = h ? `${h}시간 ${m}분` : `${m}분`;
+  return `📈 이번 세션 누적 : 문서 ${savedCount}종 자동 생성 · 수기 작성 대비 약 <b>${t}</b> 절감 (기준: 공문서 25분·인수인계서 90분 등)`;
+}
+function renderOutput(key){
+  const p = parseBasket();
+  if(!p.raw){
+    document.getElementById('docSheet').innerHTML = '<div class="doc-empty">먼저 <b>① 업무 자료 담기</b>에서 자료를 첨부해 주세요.</div>';
+    document.getElementById('copyBtn').disabled = true;
+    document.getElementById('downloadBtn').disabled = true;
+    return;
+  }
+  const {title, body} = GENERATORS[key].fn(p);
+  const {t,n} = getStaffLine();
+  const sheet = document.getElementById('docSheet');
+  sheet.innerHTML = `
+    <div class="doc-title-simple">${title}</div>
+    <pre class="doc-body" id="docBodyPre"></pre>
+    <div class="doc-foot">작성 : ${getOrgLine()} ${t} ${n}　생성 : WorkPotluck 프로토타입 (규칙기반, Tier 1)</div>
+  `;
+  document.getElementById('docBodyPre').textContent = body;
+  addSavedEffect(key);
+  const eff = document.getElementById('effectBar');
+  if(eff){ eff.innerHTML = effectLine(); eff.style.display = savedCount ? 'block' : 'none'; }
+  lastTitle = title;
+  lastPlainText = `${title}\n소속: ${getOrgLine()}\n작성: ${t} ${n}\n\n${body}`;
+  document.getElementById('copyBtn').disabled = false;
+  document.getElementById('downloadBtn').disabled = false;
+}
+/* 복사·다운로드 전, 문서가 아직 없으면 기본 형식(공문서)으로 자동 생성 */
+function ensureReportReady(btn){
+  if(!lastPlainText && uploadedFiles.length){
+    if(!state.selectedReport){ state.selectedReport = 'official'; renderReportButtons(); }
+    renderOutput(state.selectedReport);
+  }
+  if(!lastPlainText){
+    const orig = btn.textContent;
+    btn.textContent = '자료를 먼저 첨부하세요';
+    setTimeout(()=> btn.textContent = orig, 1600);
+    return false;
+  }
+  return true;
+}
+document.getElementById('copyBtn').addEventListener('click', ()=>{
+  const btn = document.getElementById('copyBtn');
+  if(!ensureReportReady(btn)) return;
+  const doCopy = (text)=>{
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(()=> flash()).catch(()=> fallbackCopy(text));
+    } else { fallbackCopy(text); }
+  };
+  const fallbackCopy = (text)=>{
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); }catch(e){}
+    document.body.removeChild(ta); flash();
+  };
+  const flash = ()=>{
+    const orig = btn.textContent;
+    btn.textContent = '✓ 복사됨';
+    setTimeout(()=> btn.textContent = orig, 1400);
+  };
+  doCopy(lastPlainText);
+});
+document.getElementById('downloadBtn').addEventListener('click', ()=>{
+  if(!ensureReportReady(document.getElementById('downloadBtn'))) return;
+  const blob = new Blob([lastPlainText], {type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${lastTitle||'문서'}_${todayStr().replace(/\.\s?/g,'')}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
+/* ===================== 트리 유틸 (웹하드 방식 폴더 CRUD) ===================== */
+function findNode(nodes, id){
+  for(const n of nodes){
+    if(n.id===id) return n;
+    if(n.children && n.children.length){ const r=findNode(n.children,id); if(r) return r; }
+  }
+  return null;
+}
+function removeNode(nodes, id){
+  const idx = nodes.findIndex(n=>n.id===id);
+  if(idx>=0){ nodes.splice(idx,1); return true; }
+  for(const n of nodes){
+    if(n.children && n.children.length && removeNode(n.children,id)) return true;
+  }
+  return false;
+}
+function treeRootsOf(kind){ return kind==='budget' ? budgetTree : otherWorkList; }
+
+function addFolder(parentId, kind){
+  const name = prompt('폴더(하위 항목) 이름을 입력하세요');
+  if(!name || !name.trim()) return;
+  const roots = treeRootsOf(kind);
+  const parent = findNode(roots, parentId);
+  if(!parent) return;
+  parent.children = parent.children || [];
+  const newNode = {id:'f'+Date.now()+Math.floor(Math.random()*1000), name:name.trim(), children:[]};
+  parent.children.push(newNode);
+  selectTreeNode(newNode.id, kind); /* 생성 즉시 새 폴더를 현재 범위로 선택 → 업무 바구니 드롭다운도 자동 동기화 */
+}
+function addRootFolder(kind){
+  const name = prompt('세부사업/기타업무와 동등한 레벨로 추가할 업무 범위 이름을 입력하세요');
+  if(!name || !name.trim()) return;
+  const roots = treeRootsOf(kind);
+  const newNode = {id:'r'+Date.now()+Math.floor(Math.random()*1000), name:name.trim(), children:[]};
+  roots.push(newNode);
+  selectTreeNode(newNode.id, kind);
+}
+document.getElementById('addBudgetRootBtn').addEventListener('click', ()=> addRootFolder('budget'));
+document.getElementById('addOtherRootBtn').addEventListener('click', ()=> addRootFolder('other'));
+
+function deleteFolder(id, kind){
+  if(!confirm('이 폴더(및 하위 항목)를 삭제하시겠습니까?')) return;
+  const roots = treeRootsOf(kind);
+  removeNode(roots, id);
+  if(state.selectedNodeId===id) selectScopeTab('CITY');
+  if(state.openAccordion===id) state.openAccordion=null;
+  refreshFileCategoryOptions();
+  refreshTreeAccordions();
+}
+
+/* ===================== 사업 진행 현황(타임라인) HTML ===================== */
+function timelineHtml(steps){
+  let html = '';
+  steps.forEach((s,i)=>{
+    const color = s.done ? '#2f7a4a' : (s.current ? 'var(--seal)' : '#98a0ab');
+    const dotBg = s.done ? '#2f7a4a' : (s.current ? 'var(--seal)' : '#d5d9df');
+    html += `<div class="pstep">
+      <div class="dotcol"><div class="dotc" style="background:${dotBg};"></div>${i<steps.length-1?'<div class="linec"></div>':''}</div>
+      <div class="pbody"><div class="plabel" style="color:${color};">${s.label}</div><div class="pdate">${s.date}</div></div>
+    </div>`;
+  });
+  return html;
+}
+let revealedTimelines = new Set();
+function renderAccordion(n){
+  let html = `<div class="accordion-panel">`;
+  if(n.timelineKey && TIMELINES[n.timelineKey]){
+    if(revealedTimelines.has(n.id)){
+      html += `<div class="acc-block acc-generated"><div class="acc-label">✨ 사업 진행 현황 <span class="acc-genned">AI 생성됨</span></div>` + timelineHtml(TIMELINES[n.timelineKey]) + `</div>`;
+    } else {
+      html += `<div class="acc-block"><div class="acc-label">사업 진행 현황</div><div class="acc-placeholder">💬 AI 업무비서에게 "이 사업에 대한 진행일정표(타임스케줄)를 짜주세요"라고 물어보면 여기에 자동으로 생성됩니다.</div></div>`;
+    }
+  }
+  const files = uploadedFiles.map((f,idx)=>({...f, idx})).filter(f=>f.categoryId === n.id || (!f.categoryId && f.category === n.name));
+  html += `<div class="acc-block"><div class="acc-label">자료 목록 (${files.length})</div>`;
+  if(files.length===0){
+    html += `<div class="file-empty-mini">첨부된 자료가 없습니다.</div>`;
+  } else {
+    files.forEach(f=>{
+      html += `<div class="file-row"><span class="fname">${f.isText?'📄':'📎'} ${f.name}</span><button data-idx="${f.idx}" class="rmFileBtnAcc">삭제</button></div>`;
+    });
+  }
+  html += `</div></div>`;
+  return html;
+}
+
+/* ===================== 트리 렌더 (재귀) ===================== */
+function renderTreeNodes(nodes, depth, kind){
+  return nodes.map(n=>{
+    const active = state.selectedNodeId === n.id;
+    const isOpen = state.openAccordion === n.id;
+    let extra = '';
+    if(n.amount) extra += `<span class="amt">${n.amount}</span>`;
+    if(n.status){ const sc = STATUS_COLOR[n.status] || {c:'#6b7280',bg:'#eceef1'}; extra += `<span class="badge2" style="color:${sc.c};background:${sc.bg};">${n.status}</span>`; }
+    const delBtn = kind==='other' ? `<span class="tn-del" data-del="${n.id}" data-kind="${kind}" title="삭제">×</span>` : '';
+    let html = `<div class="tree-row">
+      <div class="tree-node depth${Math.min(depth,3)} ${active?'active':''}" data-id="${n.id}" data-kind="${kind}">
+        <span class="lbl">${n.name}</span>${extra}
+        <span class="tn-add" data-add="${n.id}" data-kind="${kind}" title="하위 폴더 추가">＋</span>${delBtn}
+      </div>`;
+    if(isOpen) html += renderAccordion(n);
+    html += `</div>`;
+    if(n.children && n.children.length){
+      html += `<div class="tree-children">` + renderTreeNodes(n.children, depth+1, kind) + `</div>`;
+    }
+    return html;
+  }).join('');
+}
+function bindTreeEvents(box){
+  box.addEventListener('click', (e)=>{
+    const addId = e.target.dataset.add;
+    const delId = e.target.dataset.del;
+    const rmIdx = e.target.dataset.idx;
+    if(e.target.classList.contains('rmFileBtnAcc')){
+      uploadedFiles.splice(parseInt(rmIdx),1);
+      checkMasking(); refreshTreeAccordions();
+      return;
+    }
+    if(addId){ addFolder(addId, e.target.dataset.kind); return; }
+    if(delId){ deleteFolder(delId, e.target.dataset.kind); return; }
+    const row = e.target.closest('.tree-node');
+    if(row) selectTreeNode(row.dataset.id, row.dataset.kind);
+  });
+}
+function renderBudgetTree(){
+  const box = document.getElementById('budgetTree');
+  box.innerHTML = renderTreeNodes(budgetTree, 0, 'budget');
+}
+function renderOtherTree(){
+  const box = document.getElementById('otherTree');
+  box.innerHTML = renderTreeNodes(otherWorkList, 0, 'other');
+}
+/* 이벤트 위임 리스너는 최초 1회만 등록 (재렌더마다 등록하면 중복 등록되어 "열렸다 즉시 닫히는" 버그 발생) */
+bindTreeEvents(document.getElementById('budgetTree'));
+bindTreeEvents(document.getElementById('otherTree'));
+
+/* ===================== 스코프 / 노드 선택 ===================== */
+function findNodeInfo(id){
+  if(id==='CITY') return {label:'파주시 전체', scope:'CITY'};
+  if(id.startsWith('BUREAU:')) return {label:id.slice(7), scope:id};
+  if(id.startsWith('DEPT:')) return {label:id.slice(5), scope:id};
+  if(id.startsWith('TEAM:')) return {label:id.slice(5), scope:id};
+  const n = findNode(budgetTree, id) || findNode(otherWorkList, id);
+  if(n) return {label:n.name, scope:'NODE:'+n.id, budget:n.amount, status:n.status};
+  return {label:'파주시 전체', scope:'CITY'};
+}
+function selectScopeTab(id){
+  state.selectedNodeId = id;
+  state.openAccordion = null;
+  renderAll();
+}
+function selectTreeNode(id, kind){
+  /* 클릭하면 항상 해당 카테고리를 연다(이전엔 이미 열려있을 때 재클릭하면 닫혀서
+     "파일이 사라졌다"고 오해하기 쉬웠음 — 그 토글 동작 제거) */
+  state.selectedNodeId = id;
+  state.openAccordion = id;
+  renderAll();
+}
+function renderAll(){
+  renderScopeTabs();
+  renderFeatBar();
+  renderBudgetTree();
+  renderOtherTree();
+  renderCenter();
+  refreshFileCategoryOptions(); /* 현재 선택된 노드로 '업무 바구니 선택' 드롭다운을 항상 동기화 */
+}
+function resolveKind(id){
+  if(findNode(budgetTree, id)) return 'budget';
+  if(findNode(otherWorkList, id)) return 'other';
+  return null;
+}
+function renderScopeTabs(){
+  const bar = document.getElementById('scopeTabBar');
+  let html = SCOPE_TABS.map(t=>{
+    const active = state.selectedNodeId === t.id;
+    return `<div class="tab ${active?'active':''}" data-id="${t.id}"><span>${t.label}</span></div>`;
+  }).join('');
+  const fixedIds = SCOPE_TABS.map(t=>t.id);
+  if(!fixedIds.includes(state.selectedNodeId)){
+    const info = findNodeInfo(state.selectedNodeId);
+    let dot = '';
+    if(info.status){
+      const sc = STATUS_COLOR[info.status] || {c:'#6b7280',bg:'#eceef1'};
+      dot = `<span class="statusdot" style="background:${sc.c};"></span><span style="font-size:9.5px;color:${sc.c};font-weight:700;">${info.status}</span>`;
+    }
+    html += `<div class="tab-gap"></div><div class="tab active" data-id="${state.selectedNodeId}"><span>${info.label}</span>${dot}</div>`;
+  }
+  bar.innerHTML = html;
+  bar.querySelectorAll('.tab[data-id]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const id = el.dataset.id;
+      if(fixedIds.includes(id)) selectScopeTab(id);
+      else { const k = resolveKind(id); if(k) selectTreeNode(id, k); }
+    });
+  });
+}
+
+/* ===================== 기능바(featbar) / 모델 드롭다운 ===================== */
+function renderFeatBar(){
+  document.getElementById('featBtnLabel').textContent = FEATURES[state.feature].name;
+  document.getElementById('featBtn').firstChild.textContent = FEATURES[state.feature].icon + ' ';
+}
+function renderFeatDropdown(){
+  const dd = document.getElementById('featDropdown');
+  dd.innerHTML = Object.entries(FEATURES).map(([k,f])=>{
+    const active = k===state.feature;
+    return `<div class="feat-item ${active?'active':''}" data-key="${k}">
+      <span class="ic">${f.icon}</span>
+      <div><div class="fname">${f.name}</div><div class="fdesc">${f.desc}</div></div>
+      ${active?'<span class="fcheck">✓</span>':''}
+    </div>`;
+  }).join('');
+  dd.querySelectorAll('.feat-item').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      state.feature = el.dataset.key;
+      state.featOpen = false;
+      renderFeatBar(); renderFeatDropdown(); toggleDropdowns(); renderCenter();
+    });
+  });
+}
+function renderModelDropdown(){
+  const dd = document.getElementById('modelDropdown');
+  dd.innerHTML = '<div class="mhint">기능별로 목록이 달라집니다</div>' + MODEL_LIST.map(m=>{
+    const sel = m===state.model;
+    return `<div class="model-item ${sel?'sel':''}" data-m="${m}"><span>${m}</span>${sel?'<span>✓</span>':''}</div>`;
+  }).join('');
+  dd.querySelectorAll('.model-item').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      state.model = el.dataset.m;
+      state.modelOpen = false;
+      document.getElementById('modelLabel').textContent = state.model;
+      toggleDropdowns(); renderModelDropdown();
+    });
+  });
+}
+function toggleDropdowns(){
+  document.getElementById('featDropdown').classList.toggle('open', state.featOpen);
+  document.getElementById('modelDropdown').classList.toggle('open', state.modelOpen);
+}
+document.getElementById('featBtn').addEventListener('click', (e)=>{
+  e.stopPropagation();
+  state.featOpen = !state.featOpen; state.modelOpen = false;
+  renderFeatDropdown(); toggleDropdowns();
+});
+document.getElementById('modelChip').addEventListener('click', (e)=>{
+  e.stopPropagation();
+  state.modelOpen = !state.modelOpen; state.featOpen = false;
+  renderModelDropdown(); toggleDropdowns();
+});
+document.addEventListener('click', ()=>{
+  if(state.featOpen || state.modelOpen){ state.featOpen=false; state.modelOpen=false; toggleDropdowns(); }
+});
+
+/* ===================== 중앙 영역: 채팅 vs 준비중 ===================== */
+let chatMessages = [];
+
+function renderCenter(){
+  const inner = document.getElementById('centerInner');
+  const inputBar = document.getElementById('inputBar');
+  if(state.feature !== 'chat'){
+    inputBar.style.display = 'none';
+    const f = FEATURES[state.feature];
+    inner.innerHTML = `<div class="readybox">
+      <div class="ic">${f.icon}</div>
+      <h3>${f.name}</h3>
+      <p>${f.desc}<br>이 기능은 현재 프로토타입 시연 범위에 포함되지 않습니다.</p>
+      <span class="soon">준비중 · 다음 단계 로드맵 항목</span>
+    </div>`;
+    return;
+  }
+  inputBar.style.display = 'block';
+  const info = findNodeInfo(state.selectedNodeId);
+  let html = `<div class="chat-scopetag-wrap"><span class="chat-scopetag">'${info.label}' 범위로 한정된 대화입니다</span></div>`;
+  html += `<div class="chat-log" id="chatLog"></div>`;
+  inner.innerHTML = html;
+  renderChatLog();
+}
+
+function renderChatLog(){
+  const log = document.getElementById('chatLog');
+  if(!log) return;
+  if(chatMessages.length===0 && !state.chatThinking){
+    log.innerHTML = '<div class="chat-empty">궁금한 점을 입력하거나, 아래 예시 질문을 눌러 보세요.</div>' + sampleQuestionHtml();
+    bindSampleQuestions(log);
+    scrollChatToBottom();
+    return;
+  }
+  log.innerHTML = '';
+  chatMessages.forEach(m=>{
+    const div = document.createElement('div');
+    div.className = 'chat-msg ' + m.role;
+    div.textContent = m.text;
+    if(m.note){
+      const n = document.createElement('span');
+      n.className = 'note';
+      n.textContent = m.note;
+      div.appendChild(n);
+    }
+    log.appendChild(div);
+  });
+  if(state.chatThinking){
+    const div = document.createElement('div');
+    div.className = 'chat-msg ai thinking';
+    div.innerHTML = '<span class="think-dot"></span><span class="think-dot"></span><span class="think-dot"></span>';
+    log.appendChild(div);
+  }
+  scrollChatToBottom();
+}
+/* 담긴 자료로 지금 바로 답변 가능한 예시 질문만 활성화해서 보여줌 */
+function sampleQuestionHtml(){
+  const has = kw => uploadedFiles.some(f=>f.name.includes(kw));
+  const items = SAMPLE_QUESTIONS.map(sq=>{
+    const ready = sq.need.every(kw=>has(kw));
+    return {q:sq.q, ready};
+  });
+  const ready = items.filter(i=>i.ready);
+  const locked = items.filter(i=>!i.ready);
+  let html = '<div class="qchip-wrap">';
+  if(ready.length){
+    html += '<div class="qchip-title">지금 바로 물어볼 수 있는 질문</div>';
+    ready.slice(0,5).forEach(i=>{
+      html += `<button class="qchip" data-q="${i.q.replace(/"/g,'&quot;')}">${i.q}</button>`;
+    });
+  }
+  if(locked.length){
+    html += `<div class="qchip-title" style="margin-top:10px;">자료를 담으면 열리는 질문 (${locked.length})</div>`;
+    locked.slice(0,3).forEach(i=>{
+      html += `<button class="qchip locked" disabled>${i.q}<span class="qlock">자료 필요</span></button>`;
+    });
+    html += `<div class="qchip-title" style="margin-top:8px;font-weight:600;color:#a7aeb8;">← 좌측 '데모 자료실'에서 [전체 담기]를 누르면 모두 열립니다.</div>`;
+  }
+  html += '</div>';
+  return html;
+}
+function bindSampleQuestions(log){
+  log.querySelectorAll('.qchip:not(.locked)').forEach(btn=>{
+    btn.addEventListener('click', ()=> sendChat(btn.dataset.q));
+  });
+}
+function scrollChatToBottom(){
+  /* 실제 스크롤 컨테이너는 .center-scroll(#centerScroll)이며, .chat-log 자체는 스크롤되지 않음 */
+  requestAnimationFrame(()=>{
+    const scroller = document.getElementById('centerScroll');
+    if(scroller) scroller.scrollTop = scroller.scrollHeight;
+  });
+}
+
+/* ===================== 파주시 AI 업무비서 — 약속대련(사전 시나리오) 질의응답 ===================== */
+const SCRIPTED_QA = [
+  {
+    keys: ["검토해야할 사항","검토해야 할 사항","사전에 검토","계속 시행하는데","이어 2026년에도"],
+    requireAny: ["01_", "04_", "06_", "예산서", "집행현황"],
+    requireLabel: "01_2026년_예산서.xls, 04_2025년_사업시행문(신청안내), 06_2025년_집행현황.xlsx",
+    a: `『노후 농업기계 미세먼지 저감대책 지원사업』은 2025년에 이어 2026년에도 계속 시행됩니다. 첨부해 주신 자료를 종합적으로 검토해 본 결과, 사전에 점검이 필요한 사항이 세 가지로 확인됩니다.
+
+1. 폐차업소 지정 현황
+   2025년에는 관내에 노후 농업기계 해체재활용업소가 없어 대동공업 신파주대리점 등 3곳을 한시적으로 임시 지정해 운영하셨습니다. 2026년 현재는 월롱면에 정식 지정된 업소가 1곳 확인됩니다. 최신 현황은 농촌진흥청 농사로에서 상시 확인하실 수 있습니다.
+   - https://www.nongsaro.go.kr/portal/ps/psx/psxu/fchDsmntlRuseBzmnAppnMain.ps?menuId=PS65495
+   관내 지정업소가 있으므로 2025년처럼 임시 지정 절차를 다시 밟기보다, 해당 업소를 우선 활용하고 처리 물량에 따라 인근 시·군 업소(예: 2025년 활용했던 양주 소재 업체)를 보조로 검토하시는 방향이 안전할 것 같습니다.
+
+2. 신청자 모집 방법
+   2025년에는 읍·면·동장, 농업인상담실장, 단위농협조합장, 폐차지정업소 대표를 통한 홍보로 진행되었습니다. 여기에 파주시 홈페이지 공고를 병행하시면 접근성이 높아질 것으로 보이며, 이는 사업시행지침에서 권장하는 홍보 방법(지자체 홈페이지 안내·게시판 공고·반상회보 게재)과도 일치합니다.
+
+3. 예산이 부족할 가능성이 있습니다
+   2025년 실적을 보면 신청 19건(트랙터 8 / 콤바인 11) 중 5건만 선정되어 선정률이 26.3%에 그쳤습니다. 그런데 2026년 예산은 22,000천원으로 전년(25,050천원)보다 오히려 3,050천원 줄어 있어, 신청 대비 예산 부족 문제가 더 심화될 가능성이 큽니다. 사전에 증액 필요성을 검토해 보시길 권해드립니다.
+
+각 항목에 대해 더 자세히 알고 싶으시면 "폐차업소는 임시지정인가요?", "참여자 모집 방법을 검토해 주세요", "예산이 부족한데 검토해 주세요"처럼 구체적으로 다시 물어봐 주세요.`
+  },
+  {
+    keys: ["신청기간","접수기간","언제까지","연간","스케줄","일정","타임라인","체크리스트"],
+    requireAny: ["07_"],
+    requireLabel: "07_2026년_사업시행문_노후_농업기계_미세먼지_저감대책_지원사업_신청_안내.pdf",
+    a: `『2026년 노후 농업기계 미세먼지 저감대책 지원사업』 타임라인을 표로 정리해 드립니다.
+
+■ 추진 일정표
+
+  날짜                       할 일
+  ─────────────────────────────────────────
+  2026. 3. 30.(월)           신청 접수 시작
+  2026. 4. 17.(금)           신청 접수 마감
+  2026. 4. 18. ~ 4월 말      대상자 확인 및 서류 심사 (생산연도 오래된 순 우선 선정)
+  2026. 5. ~ 10.             폐차 이행 및 보조금 지급 (입고확인서 → 폐차확인서 → 보조금 산정·지급)
+  회계연도 종료 후 1개월 이내   정산 및 결과보고서 제출
+
+■ 체크리스트
+☐ 신청서(면세유 공급보류 및 말소 신청서 포함) 1부
+☐ 소유자 신분증 사본 1부
+☐ 보조금 지급요청 통장 사본 1부
+☐ 대상 기계 6개월 이상 소유 여부 확인
+☐ 2012.12.31. 이전 생산 트랙터·콤바인 여부 확인
+
+「02_2026년 사업시행지침」의 절차와 「07_2026년 사업시행문」의 신청기간을 함께 반영해 정리했습니다.
+
+📌 좌측 '담당세부사업 / AI 업무 협업 범위'에서도 방금 만든 사업 진행 현황을 확인하실 수 있습니다.`,
+    revealsTimeline: true
+  },
+  {
+    keys: ["폐차업소","폐차 업체","임시지정","임시 지정","해체재활용","월롱면"],
+    requireAny: ["04_", "03_"],
+    requireLabel: "04_2025년_사업시행문(폐차 신청 안내), 03_2025년_사업시행지침",
+    a: `2025년에는 관내에 노후 농업기계 해체재활용업소가 없어 대동공업 신파주대리점 등 3곳을 한시적으로 임시 지정해 운영하셨습니다.
+
+2026년 현재는 월롱면에 정식 지정된 업소가 1곳 확인됩니다. 최신 현황은 농촌진흥청 농사로에서 상시 확인하실 수 있습니다.
+- https://www.nongsaro.go.kr/portal/ps/psx/psxu/fchDsmntlRuseBzmnAppnMain.ps?menuId=PS65495
+
+관내 지정업소가 있으므로 2025년처럼 임시 지정 절차를 다시 밟기보다, 해당 업소를 우선 활용하고 처리 물량에 따라 인근 시·군 업소(예: 2025년 활용했던 양주 소재 업체)를 보조로 검토하시는 방향이 안전할 것 같습니다.`
+  },
+  {
+    keys: ["참여자 모집","모집 방법","홈페이지 공고","공고 검토"],
+    requireAny: ["04_"],
+    requireLabel: "04_2025년_사업시행문(신청 안내)",
+    a: `참여자 모집(홈페이지 공고) 방법에 대해 검토해 드립니다.
+
+2025년에는 읍·면·동장, 농업인상담실장, 단위농협조합장, 폐차지정업소 대표를 통한 홍보로 진행되었습니다(04번 자료). 여기에 파주시 홈페이지 공고를 병행하시면 접근성이 높아질 것으로 보이며, 이는 사업시행지침에서 권장하는 홍보 방법(지자체 홈페이지 안내·게시판 공고·반상회보 게재)과도 일치합니다.
+
+2026년 공고 게재 여부는 신청 안내 문서가 확정되는 대로 다시 확인해 드리겠습니다.`
+  },
+  {
+    keys: ["예산부족","예산 부족","증액","신청자 대비","선정률"],
+    requireAny: ["06_", "01_", "집행현황", "예산서"],
+    requireLabel: "01_2026년_예산서.xls, 06_2025년_집행현황.xlsx",
+    a: `2025년 집행현황(06번 자료) 대비 2026년 예산 편성을 검토해 드립니다.
+
+■ 2025년 집행실적 (연말 기준)
+- 신청 19건(트랙터 8 / 콤바인 11) 대비 선정 5건(트랙터 2 / 콤바인 3)
+- 선정률 약 26.3%로, 신청자 다수가 예산 부족으로 지원받지 못했습니다.
+
+■ 2026년 예산 (01_예산서.xls)
+- 노후 농업기계 미세먼지 저감 대책 지원 : 22,000천원 (국비 11,000 / 도비 3,300 / 시비 7,700)
+- 전년도(25,050천원) 대비 오히려 3,050천원 감액 편성
+
+2025년 낮은 선정률(26.3%)을 감안하면 2026년 수요는 유사하거나 더 늘어날 가능성이 있어, 추경 등을 통한 예산 증액 검토가 필요해 보입니다. 다만 최종 판단은 예산부서 협의가 필요한 사항입니다.`
+  },
+  {
+    keys: ["검색엔진","보도자료","인터넷 연결","외부 연결","실시간 검색"],
+    requireAny: ["07_"],
+    requireLabel: "07_2026년_사업시행문",
+    a: `실시간 검색엔진 연결(외부 인터넷)은 보안상(공공기관 폐쇄망 특성) 지원되지 않지만, 첨부해 주신 「07_2026년 사업시행문」 등 자료를 바탕으로 보도자료 초안을 작성해 드렸습니다.
+
+우측 '보고서 변환'에서 [보도자료] 버튼을 눌러 확인해 주세요. 제목·리드문·본문·담당부서 연락처까지 실제 배포 양식에 맞춰 구성했습니다.
+
+추가로 반영할 최신 통계나 타 시·군 사례가 있으면 자료를 첨부해 주시면 다음 초안에 반영해 드리겠습니다.`
+  },
+  {
+    keys: ["쪽지보고"],
+    requireAny: ["07_"],
+    requireLabel: "07_2026년_사업시행문",
+    a: `노후 농업기계 미세먼지 저감 대책 지원사업 쪽지보고 초안을 안내해 드립니다.
+
+□ 개요
+  ○ 2026년 노후 경유 농업기계(트랙터·콤바인) 조기폐차 지원사업 신청 접수 (3.30.~4.17.)
+  ○ 예산 22,000천원(국비 11,000 / 도비 3,300 / 시비 7,700), 전년 대비 3,050천원 감액
+□ 현재 추진현황
+  ○ 신청 접수 진행 중이며, 관내 폐차 지정업소 1개소(월롱면 소재)가 운영 중
+□ (예상)건의사항
+  ○ 2025년 선정률 26.3%로 신청 대비 예산 부족 → 증액 검토 필요
+  ○ 관내 폐차 지정업소(월롱면 소재 1개소)로 처리물량 집중 우려
+
+정식 서식으로 받으시려면 우측 '보고서 변환'의 [쪽지보고] 버튼을 눌러 주세요. 이 채팅 답변은 요약형 안내입니다.`
+  },
+  {
+    keys: ["법제처","조례제정 현황","전국 시군구","조례 제정 현황"],
+    requireAny: ["08_", "09_", "부서의견조회", "별표"],
+    requireLabel: "08_[부서의견조회] 조례안, 09_[별표 2]",
+    combineGroup: 'ordinance-review',
+    a: function(){
+      let body = `법제처 홈페이지에 실시간 접속하여 전국 시·군·구 조례 제정 현황을 분석하여 업로드하신 「08_[부서의견조회] 조례안」 자료를 바탕으로 조례안 개요를 정리해 드립니다.
+
+■ 의원발의 조례안 개요
+- 안건명 : 「파주시 노후 농기계 조기 폐기 지원 조례안」(제정) (○○○ 의원 발의, 2026. 2. 12.)
+- 제안이유 : 노후 경유 농기계로 인한 미세먼지·온실가스 배출 저감 및 안전사고 위험 완화를 위한 재정 지원 근거 마련
+- 주요내용 :
+  1) 미세먼지·온실가스 배출 저감 및 농업안전 강화를 위한 노후농기계 조기 폐기 지원 근거 마련(안 제1조)
+  2) 노후 농기계 지원대상 명확화 - 소유 6개월 이상(안 제2조, 제6조)
+  3) 시장책무, 연차별 지원계획 수립, 지정폐기업소 관리체계 구축(안 제3조, 제5조, 제9조)
+  4) 보조금 지급기준 및 제한사유 규정 - 농업인·법인 대상, 1인1대 원칙(안 제7조, 제8조)
+
+■ 소관부서 검토의견(추천사항)
+검토의견 : 조례 개정 수정동의
+- 제7조 보조금 지원 등 관련 노후 농기계 조기 폐기 신청이 예산을 초과하는 경우 선정 기준이 불명확한 문제를 해결하기 위해 우선순위를 정하여 형평성 논란을 최소화하기 위한 조례 개정에 동의함
+- 농업기술센터(도시산업위원회 소관) 업무와 연계한 실효성 있는 지원체계 구축을 위한 의원발의 조례안에 동의
+
+■ 검토사항 (1개 항목)
+(의원발의안) 제7조(보조금 지원 등)
+① 시장은 제5조제2항제3호에 따른 노후농기계의 조기 폐기 지원 보조금 지급 기준에 따라 예산의 범위에서 지원할 수 있다.
+② 노후농기계 조기 폐기 지원 보조금 지급 대상은 노후농기계의 소유자로서 다음 각 호의 어느 하나에 해당하는 자로 한다.
+  1. 파주시에 주민등록을 두고 「농어업경영체 육성 및 지원에 관한 법률」에 따른 농업경영정보를 등록한 농업인
+  2. 파주시에 사무소의 소재지를 두고 「농어업경영체 육성 및 지원에 관한 법률」에 따른 농업경영정보를 등록한 농업법인
+③ 시장은 보조금의 우선순위 기준을 정하고 지원 대상을 결정할 수 있다.
+④ 보조금 지급 대상이 2대 이상의 지원 대상 노후농기계를 소유한 경우에는 1인당 1대에 한하여 보조금을 지급한다. 다만, 시장이 필요하다고 인정하는 경우 1인당 2대 이상에 대하여도 보조금을 지급할 수 있다.
+
+(부서 검토의견안) 제7조(보조금 지원 등) — ④항 다음 ⑤항 신설
+⑤ 노후 농기계 조기 폐기 신청이 예산을 초과하는 경우에는 다음 각 호의 순서에 따라 우선 지원한다.
+  1. 생산연도가 오래된 순
+  2. 그 밖에 시장이 정하는 객관적 기준(연령, 경지면적 등)
+
+(검토사유) 선정 기준이 불명확한 문제를 해결하기 위해 신청 초과 시 우선순위를 정해 형평성 논란을 최소화할 수 있음
+
+■ 비용추계
+- 산출내역 : 2,500,000원 × 175대 = 437,500천원 (2026~2030년 5개년 합계)
+- 연차별 : 2026년 62,500 / 2027년 75,000 / 2028년 87,500 / 2029년 100,000 / 2030년 112,500천원
+- 재원조달 : 시비 100%`;
+      return body;
+    }
+  },
+  {
+    keys: ["검토의견","부서검토의견","수정동의"],
+    requireAny: ["00_", "검토결과"],
+    requireLabel: "00_소관부서 검토결과",
+    a: `앞서 안내드린 조례안 개요에 이어, 첨부하신 「00_소관부서 검토결과」를 반영해 소관부서 검토의견을 정리해 드립니다.
+
+■ 소관부서 검토결과
+- 자치법규명 : 「파주시 노후 농기계 조기 폐기 지원 조례안」(제정)
+- 소관부서 : 복지정책과(맞춤형복지지원팀)
+- 검토의견 : 조례 개정 수정동의
+
+■ 검토사항 (1개 항목)
+(의원발의안) 제7조(보조금 지원 등)
+① 시장은 제5조제2항제3호에 따른 노후농기계의 조기 폐기 지원 보조금 지급 기준에 따라 예산의 범위에서 지원할 수 있다.
+② 노후농기계 조기 폐기 지원 보조금 지급 대상은 노후농기계의 소유자로서 다음 각 호의 어느 하나에 해당하는 자로 한다.
+  1. 파주시에 주민등록을 두고 「농어업경영체 육성 및 지원에 관한 법률」에 따른 농업경영정보를 등록한 농업인
+  2. 파주시에 사무소의 소재지를 두고 「농어업경영체 육성 및 지원에 관한 법률」에 따른 농업경영정보를 등록한 농업법인
+③ 시장은 보조금의 우선순위 기준을 정하고 지원 대상을 결정할 수 있다.
+④ 보조금 지급 대상이 2대 이상의 지원 대상 노후농기계를 소유한 경우에는 1인당 1대에 한하여 보조금을 지급한다. 다만, 시장이 필요하다고 인정하는 경우 1인당 2대 이상에 대하여도 보조금을 지급할 수 있다.
+
+(부서 검토의견안) 제7조(보조금 지원 등) — ④항 다음 ⑤항 신설
+⑤ 노후 농기계 조기 폐기 신청이 예산을 초과하는 경우에는 다음 각 호의 순서에 따라 우선 지원한다.
+  1. 생산연도가 오래된 순
+  2. 그 밖에 시장이 정하는 객관적 기준(연령, 경지면적 등)
+
+(검토사유) 선정 기준이 불명확한 문제를 해결하기 위해 신청 초과 시 우선순위를 정해 형평성 논란을 최소화할 수 있음
+
+■ 비용추계
+- 산출내역 : 2,500,000원 × 175대 = 437,500천원 (2026~2030년 5개년 합계)
+- 연차별 : 2026년 62,500 / 2027년 75,000 / 2028년 87,500 / 2029년 100,000 / 2030년 112,500천원 (총 사업량 175세대, 재원 시비 100%)
+
+담당 부서는 농업기술센터(도시산업위원회 소관) 업무와 연계한 실효성 있는 지원체계 구축에 동의하는 취지로 수정동의 의견을 제시했습니다.`
+  },
+  {
+    keys: ["조례 제정 타임라인","별표 2","제정·개정·폐지","제정 절차"],
+    requireAny: ["09_", "별표"],
+    requireLabel: "09_[별표 2] 제정·개정·폐지 세부처리절차",
+    combineGroup: 'ordinance-review',
+    a: `업로드하신 「09_[별표 2] 제정·개정·폐지 세부처리절차」를 반영한 조례 제정 타임라인입니다.
+
+1. 입법안 작성 (입안부서)
+2. 초안심사 (법제부서 : 조문형식·법규용어 등 심사)
+3. 입법계획수립(방침결재) — 시장 결재
+4. 의견조회 및 의견반영 (규제영향분석·부패영향평가·성별영향평가 등)
+5. 입법예고 및 의견반영 (20일 이상 시보 게재)
+6. 본심사 (법제부서)
+7. 조례·규칙심의회 심의
+8. 심의결과 통보 및 반영
+9. 입법안 최종결재 (시장 결재)
+10. 조례안 시의회 제출
+11. 시의회 심의·의결
+12. 조례안 이송·접수 (의결일로부터 5일 이내)
+13. (이의 시) 재의요구 → 11번으로 회귀
+14. 공포 전 보고 (경기도 법제부서, 이송일로부터 5일 이내)
+15. 공포 결재 → 공포번호 부여 → 공포 알림
+
+☐ 체크리스트 : 규제영향분석 필요 여부 확인 / 입법예고 20일 확보 / 조례·규칙심의회 일정 조율 / 시의회 상임위 제안설명 준비
+
+📌 좌측 '담당세부사업 / AI 업무 협업 범위'의 현재 폴더에도 방금 만든 사업 진행 현황을 확인하실 수 있습니다.`,
+    revealsTimeline: true,
+    timelineKeyToAssign: 'ordinance'
+  },
+  {
+    keys: ["예산","사업비","얼마","금액"],
+    requireAny: ["01_", "예산서"],
+    requireLabel: "01_2026년_예산서.xls",
+    a: `기술보급과 2026년도 세부사업 예산 현황을 안내해 드립니다 (단위: 천원).
+
+- 농기계 임대사업소 운영 : 649,680  (국비 14,000 / 도비 4,200 / 시비 631,480)  전년 대비 △36,258
+- 농업기계 안전교육 지원 : 6,000  (국비 3,000 / 도비 900 / 시비 2,100)  전년과 동일
+- 노후 농업기계 미세먼지 저감 대책 지원 : 22,000  (국비 11,000 / 도비 3,300 / 시비 7,700)  전년 대비 △3,050
+
+업로드하신 「01_2026년_예산서.xls」 기준으로 집계했습니다.`
+  },
+  {
+    keys: ["법률검토","법령조회","xlaw"],
+    requireAny: ["08_", "09_"],
+    requireLabel: "08_[부서의견조회] 조례안, 09_[별표 2]",
+    a: `법령 조회 시스템 기능을 통해 관련 법령·조례를 확인했습니다. 「미세먼지 저감 및 관리에 관한 특별법」 제3조(국가와 지방자치단체의 책무), 「농업기계화 촉진법 시행규칙」 제17조(사후관리업자의 시설 및 기술인력 기준)가 본 사업의 근거 법령으로 확인됩니다. 자세한 조문은 좌측 상단 기능 선택에서 '법령 조회 시스템'을 눌러 별도로 질의해 주세요. (현재 프로토타입에서는 ChatAgent 창에서 간이 안내만 제공합니다.)`
+  }
+];
+
+const EXTERNAL_LINK_WORDS = ["검색엔진","법제처 홈페이지","인터넷 연결","외부 연결","웹 크롤링","크롤링","실시간 검색","홈페이지에서"];
+function isExternalLinkRequest(q){ return EXTERNAL_LINK_WORDS.some(w=>q.includes(w)); }
+
+const STOPWORDS = ['얼마','언제','누구','어디','뭐','무엇','있어','있나요','인가요','까지','인지','알려줘','알려주세요','해줘','좀','안내'];
+
+function findScripted(q){
+  let best = null, bestScore = 0;
+  SCRIPTED_QA.forEach(item=>{
+    /* 매칭 개수가 아니라 매칭된 키워드 글자수 합으로 점수 계산 — 더 구체적인(긴) 키워드를 우선시하여
+       "타임라인/일정/스케줄" 같은 범용 키워드로 인한 오매칭을 방지 */
+    const score = item.keys.reduce((s,k)=> s + (q.includes(k)?k.length:0), 0);
+    if(score > bestScore){ bestScore = score; best = item; }
+  });
+  return bestScore > 0 ? best : null;
+}
+function findAllScripted(q){
+  const scored = SCRIPTED_QA.map(item=>{
+    const score = item.keys.reduce((s,k)=> s + (q.includes(k)?k.length:0), 0);
+    return {item, score};
+  }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score);
+  if(scored.length===0) return [];
+  const top = scored[0];
+  if(top.item.combineGroup){
+    const partners = scored.filter(x => x.item.combineGroup === top.item.combineGroup && x.score >= 6);
+    if(partners.length > 1) return partners.map(x=>x.item);
+  }
+  return [top.item];
+}
+function filesReadyFor(item){
+  if(!item.requireAny || item.requireAny.length === 0) return true;
+  return uploadedFiles.some(f => item.requireAny.some(kw => f.name.includes(kw)));
+}
+function fallbackSearch(q, scope){
+  const accText = maskPII(getAccumulatedText(scope)).trim();
+  if(!accText) return null;
+  const lines = accText.split('\n').map(l=>l.trim()).filter(Boolean);
+  const keywords = q.replace(/[?!.,]/g,'').split(/\s+/).filter(w=>w.length>1 && !STOPWORDS.includes(w));
+  if(keywords.length===0) return null;
+  const scored = lines.map(l=>{
+    const score = keywords.reduce((s,k)=> s + (l.includes(k)?1:0), 0);
+    return {l, score};
+  }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score);
+  if(scored.length===0) return null;
+  return scored.slice(0,3).map(x=>'· '+x.l.replace(/^[-•○]\s*/,'')).join('\n');
+}
+
+function applyTimelineReveal(hit){
+  if(!hit.revealsTimeline) return;
+  const node = findNode(budgetTree, state.selectedNodeId) || findNode(otherWorkList, state.selectedNodeId);
+  if(!node) return;
+  if(hit.timelineKeyToAssign && !node.timelineKey){
+    node.timelineKey = hit.timelineKeyToAssign; /* 사용자가 만든 하위폴더에도 사업 진행 현황을 새로 배정 */
+  }
+  if(node.timelineKey){
+    revealedTimelines.add(node.id);
+    state.openAccordion = node.id;
+  }
+}
+
+function answerQuestion(q){
+  const info = findNodeInfo(state.selectedNodeId);
+  const scope = info.scope;
+  const scopeLabel = info.label;
+  const hits = findAllScripted(q);
+
+  if(hits.length === 1){
+    const hit = hits[0];
+    if(!filesReadyFor(hit)){
+      return {
+        text: `이 질문에 답변드리려면 관련 자료가 먼저 첨부되어야 합니다.\n\n필요 자료 : ${hit.requireLabel}\n\n좌측 '① 업무 자료 담기'에서 해당 파일을 업로드하신 뒤 다시 질문해 주세요.`,
+        note: "※ 자료 미첨부 상태입니다 (자료 있어야 답한다 원칙). 실제 서비스에서는 관련 자료 유무를 AI가 자동 판별합니다."
+      };
+    }
+    const text = (typeof hit.a === 'function') ? hit.a() : hit.a;
+    applyTimelineReveal(hit);
+    return { text, note: `※ 사전에 준비된 답변입니다 (질문 범위: ${scopeLabel}). 실제 서비스에서는 업로드된 자료를 바탕으로 AI가 실시간 생성합니다.` };
+  }
+
+  if(hits.length > 1){
+    const parts = hits.map(hit=>{
+      if(!filesReadyFor(hit)){
+        return `▸ (자료 필요) ${hit.requireLabel}\n   이 부분은 해당 자료를 첨부하신 뒤 다시 물어봐 주시면 이어서 답변드리겠습니다.`;
+      }
+      const text = (typeof hit.a === 'function') ? hit.a() : hit.a;
+      applyTimelineReveal(hit);
+      return text;
+    });
+    const combined = parts.join('\n\n━━━━━━━━━━━━━━━━━━━━\n\n');
+    return { text: combined, note: `※ 한 번에 물어보신 ${hits.length}가지 요청을 이어서 답변드렸습니다 (질문 범위: ${scopeLabel}). 실제 서비스에서는 업로드된 자료를 바탕으로 AI가 실시간 생성합니다.` };
+  }
+
+  if(isExternalLinkRequest(q)){
+    return {
+      text: `보안상(공공기관 폐쇄망 특성) 검색엔진·법제처 홈페이지 등 외부 사이트에 직접 연결하는 것은 이 화면에서 지원되지 않습니다.\n\n대신 좌측에 첨부하신 자료를 바탕으로 초안을 작성해 드릴 수 있습니다. 관련 자료를 첨부하신 뒤 다시 질문해 주시거나, 우측 '보고서 변환'의 출력 버튼을 활용해 주세요.`,
+      note: "※ 심사기준표의 '보안·개인정보 제약' 원칙에 따른 응대입니다."
+    };
+  }
+
+  const fb = fallbackSearch(q, scope);
+  if(fb){
+    return { text: `등록된 시나리오 질문은 아니지만, "${scopeLabel}" 범위 자료에서 관련 문장을 찾았습니다.\n\n${fb}`, note: "※ 규칙기반 키워드 검색 결과입니다." };
+  }
+  /* 시나리오·규칙기반으로 답할 수 없는 질문 → 실시간 AI가 켜져 있으면 AI에게 넘김 */
+  if(LIVE.on && LIVE.key){
+    return { liveRequest:true, scope, scopeLabel };
+  }
+  const examples = SCRIPTED_QA.map(x=>x.keys[0]).join(' / ');
+  return { text: `이 프로토타입은 사전 등록된 질문 예시에 한해 답변을 준비해 두었습니다.\n등록된 질문 예시: ${examples}\n\n채팅창 우측 상단 ⚡ 버튼에서 실시간 AI를 연결하시면, 등록되지 않은 질문도 실제 AI가 바로 답변합니다.`, note: "※ 실시간 연결 시 등록되지 않은 질문도 AI가 답변합니다." };
+}
+
+/* ===================== 실시간 AI 연결 (선택 기능) =====================
+   기본은 시나리오 모드입니다. 사용자가 직접 입력한 API 키는 이 페이지의 메모리에만 보관되며
+   파일·localStorage 어디에도 저장하지 않습니다(새로고침 시 소멸).                      */
+const LIVE = { on:false, key:'', model:'gemini-2.5-flash' };
+
+function liveSystemPrompt(scopeLabel){
+  return [
+    '당신은 경기도 파주시청 공무원의 업무를 돕는 AI 업무비서입니다.',
+    '아래 원칙을 반드시 지키세요.',
+    '1) 한국어 공문서 어투로, 담당 주무관이 바로 결재 라인에 올릴 수 있는 수준으로 간결하게 작성합니다.',
+    '2) 첨부된 자료에 근거해서만 사실을 말하고, 자료에 없는 수치·날짜·기관명은 지어내지 말고 "자료에 없음"이라고 밝힙니다.',
+    '3) 개인정보(연락처·주민번호·계좌)는 마스킹된 상태로 다루며 복원을 시도하지 않습니다.',
+    '4) 답변은 개조식(○, - 기호)으로 정리하되, 필요하면 표 대신 줄바꿈을 사용합니다.',
+    '',
+    `현재 사용자 소속 : ${getOrgLine()} ${getStaffLine().t} ${getStaffLine().n}`,
+    `현재 질문 범위 : ${scopeLabel}`
+  ].join('\n');
+}
+
+async function callLiveAI(question, scope, scopeLabel){
+  const raw = maskPII(getAccumulatedText(scope) || '').trim();
+  const MAX = 12000;
+  const material = raw ? (raw.length > MAX ? raw.slice(0, MAX) + '\n… (이하 생략)' : raw)
+                       : '(첨부된 자료 없음 — 자료 없이 일반적인 업무 지식으로만 답변하고, 그 사실을 밝힐 것)';
+  const prompt = `${liveSystemPrompt(scopeLabel)}\n\n===== 첨부 자료 본문 =====\n${material}\n\n===== 담당자 질문 =====\n${question}`;
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(LIVE.model)}:generateContent?key=${encodeURIComponent(LIVE.key)}`;
+  const res = await fetch(url, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ contents:[{ role:'user', parts:[{text: prompt}] }] })
+  });
+  if(!res.ok){
+    let detail = '';
+    try{ const j = await res.json(); detail = (j.error && j.error.message) ? j.error.message : ''; }catch(e){}
+    throw new Error(`HTTP ${res.status}${detail ? ' · ' + detail : ''}`);
+  }
+  const data = await res.json();
+  const parts = (((data.candidates||[])[0]||{}).content||{}).parts || [];
+  const text = parts.map(p=>p.text||'').join('').trim();
+  if(!text) throw new Error('빈 응답을 받았습니다 (안전 필터 차단 가능성)');
+  return text;
+}
+
+/* ---------- 실시간 AI 설정 모달 ---------- */
+const liveModal   = document.getElementById('liveModal');
+const liveBtn     = document.getElementById('liveBtn');
+const liveStatus  = document.getElementById('liveStatus');
+function refreshLiveBtn(){
+  const label = document.getElementById('liveBtnLabel');
+  if(LIVE.on && LIVE.key){
+    liveBtn.classList.add('on');
+    label.textContent = '실시간 ON';
+    liveBtn.title = `실시간 AI 연결됨 (${LIVE.model})`;
+  } else {
+    liveBtn.classList.remove('on');
+    label.textContent = '시나리오';
+    liveBtn.title = '실시간 AI 연결 설정';
+  }
+  /* ✍ 직접 입력의 ✨ 버튼 활성 여부도 함께 갱신 (아직 정의 전이면 무시) */
+  try{ refreshTypedBtn(); }catch(e){}
+}
+liveBtn.addEventListener('click', ()=>{
+  document.getElementById('liveKeyInput').value = LIVE.key;
+  document.getElementById('liveModelInput').value = LIVE.model;
+  liveStatus.className = 'live-status';
+  liveStatus.textContent = LIVE.on && LIVE.key ? `현재 상태 : 연결됨 (${LIVE.model})` : '현재 상태 : 시나리오 모드';
+  liveModal.classList.add('show');
+});
+document.getElementById('liveCancelBtn').addEventListener('click', ()=> liveModal.classList.remove('show'));
+liveModal.addEventListener('click', (e)=>{ if(e.target===liveModal) liveModal.classList.remove('show'); });
+document.getElementById('liveOffBtn').addEventListener('click', ()=>{
+  LIVE.on = false; LIVE.key = '';
+  document.getElementById('liveKeyInput').value = '';
+  refreshLiveBtn();
+  liveStatus.className = 'live-status';
+  liveStatus.textContent = '시나리오 모드로 전환했습니다.';
+});
+document.getElementById('liveSaveBtn').addEventListener('click', async ()=>{
+  const key = document.getElementById('liveKeyInput').value.trim();
+  const model = document.getElementById('liveModelInput').value.trim() || 'gemini-2.5-flash';
+  if(!key){
+    liveStatus.className = 'live-status err';
+    liveStatus.textContent = 'API 키를 입력해 주세요.';
+    return;
+  }
+  LIVE.key = key; LIVE.model = model;
+  liveStatus.className = 'live-status';
+  liveStatus.textContent = '연결 확인 중…';
+  try{
+    await callLiveAI('연결 테스트입니다. "연결 완료"라고만 답해 주세요.', 'CITY', '연결 테스트');
+    LIVE.on = true;
+    refreshLiveBtn();
+    liveStatus.className = 'live-status ok';
+    liveStatus.textContent = `✓ 연결되었습니다 (${LIVE.model}). 시나리오에 없는 질문은 실시간 AI가 답변합니다.`;
+    setTimeout(()=> liveModal.classList.remove('show'), 900);
+  }catch(err){
+    LIVE.on = false;
+    refreshLiveBtn();
+    liveStatus.className = 'live-status err';
+    liveStatus.textContent = '연결 실패 : ' + err.message;
+  }
+});
+refreshLiveBtn();
+
+
+/* ===================== 데모 자료실 (10건) =====================
+   행정망·보안 여건상 직원들이 실제 파일을 첨부하기 어려운 점을 고려해, 실제 업무 문서를
+   가공한 예제 파일 10건을 내장했습니다. 클릭 한 번으로 업무 바구니에 담아 바로 시험해 볼 수 있습니다. */
+const DEMO_FILES = [
+  {
+    id:'d00', name:'00_소관부서_검토결과(노후_농기계_조기_폐기_지원_조례안).hwp', kind:'조례',
+    desc:'소관부서 검토의견 · 수정동의',
+    content:`소관부서 검토결과
+자치법규명 : 「파주시 노후 농기계 조기 폐기 지원 조례안」(제정)
+발의 : ○○○ 의원 발의 (2026. 2. 12.)
+소관부서 : 복지정책과(맞춤형복지지원팀)
+검토의견 : 조례 개정 수정동의
+
+□ 검토사항 (1건)
+(의원발의안) 제7조(보조금 지원 등)
+① 시장은 제5조제2항제3호에 따른 노후농기계의 조기 폐기 지원 보조금 지급 기준에 따라 예산의 범위에서 지원할 수 있다.
+② 보조금 지급 대상은 노후농기계의 소유자로서 다음 각 호의 어느 하나에 해당하는 자로 한다.
+  1. 파주시에 주민등록을 두고 농업경영정보를 등록한 농업인
+  2. 파주시에 사무소의 소재지를 두고 농업경영정보를 등록한 농업법인
+③ 시장은 보조금의 우선순위 기준을 정하고 지원 대상을 결정할 수 있다.
+④ 2대 이상 소유한 경우 1인당 1대에 한하여 보조금을 지급한다.
+
+(부서 검토의견안) 제7조 ⑤항 신설
+⑤ 노후 농기계 조기 폐기 신청이 예산을 초과하는 경우에는 다음 각 호의 순서에 따라 우선 지원한다.
+  1. 생산연도가 오래된 순
+  2. 그 밖에 시장이 정하는 객관적 기준(연령, 경지면적 등)
+
+(검토사유) 선정 기준이 불명확한 문제를 해결하기 위해 신청 초과 시 우선순위를 정해 형평성 논란을 최소화할 수 있음
+
+□ 비용추계
+산출내역 : 2,500,000원 × 175대 = 437,500천원 (2026~2030년 5개년 합계)
+연차별 : 2026년 62,500 / 2027년 75,000 / 2028년 87,500 / 2029년 100,000 / 2030년 112,500천원
+재원조달 : 시비 100%`
+  },
+  {
+    id:'d01', name:'01_2026년_예산서.xls', kind:'예산',
+    desc:'기술보급과 세부사업 3건 · 자동 등록',
+    content:`2026년도 세부사업별 예산서 (농업기술센터 기술보급과 농업기계팀)
+단위 : 천원
+
+세부사업명,총액,국비,도비,시비,전년대비
+농기계임대사업소 운영,649680,14000,4200,631480,-36258
+농업기계 안전교육 지원,6000,3000,900,2100,0
+노후 농업기계 미세먼지 저감 대책 지원,22000,11000,3300,7700,-3050
+
+□ 참고사항
+- 노후 농업기계 미세먼지 저감 대책 지원 : 2025년 25,050천원 → 2026년 22,000천원 (3,050천원 감액)
+- 농기계임대사업소 운영 : 임대장비 정비·부품비 포함
+- 편성기준 : 2026년도 파주시 본예산`
+  },
+  {
+    id:'d02', name:'02_2026년_사업시행지침(농림축산식품부).pdf', kind:'지침',
+    desc:'국비 지원기준 · 보조금 산정표',
+    content:`2026년 노후 농업기계 미세먼지 저감대책 지원사업 시행지침 (농림축산식품부)
+
+1. 사업목적
+노후 경유 농업기계의 조기 폐기를 유도하여 미세먼지 및 온실가스 배출을 저감하고, 노후 기계로 인한 농작업 안전사고를 예방한다.
+
+2. 지원대상
+- 2012. 12. 31. 이전 생산된 트랙터 및 콤바인
+- 신청일 기준 6개월 이상 소유한 농업인 또는 농업법인
+- 정상 가동이 가능한 상태여야 하며, 폐기 전 관할 시군의 확인을 받아야 함
+
+3. 보조금 산정 기준
+- 트랙터 : 100만원 ~ 649만원 (제조연도 및 마력별 차등)
+- 콤바인 : 100만원 ~ 1,773만원 (제조연도 및 조수별 차등)
+- 국비 50%, 지방비 50%(도비 15%, 시비 35%)
+
+4. 추진절차
+사업계획 수립 → 신청 접수 → 대상자 선정 → 폐차 이행 → 입고확인서 제출 → 폐차확인서 확인 → 보조금 산정·지급 → 정산
+
+5. 홍보 권장방법
+- 지방자치단체 홈페이지 안내 및 게시판 공고
+- 반상회보 게재
+- 읍면동 및 농협을 통한 안내
+
+6. 정산
+회계연도 종료 후 1개월 이내 결과보고서 및 정산서 제출`
+  },
+  {
+    id:'d03', name:'03_2025년_사업시행지침.pdf', kind:'지침',
+    desc:'전년도 지침 · 폐차업소 지정기준',
+    content:`2025년 노후 농업기계 미세먼지 저감대책 지원사업 시행지침
+
+1. 폐차(해체재활용) 업소 관련
+- 폐차는 「농업기계화 촉진법 시행규칙」 제17조에 따른 사후관리업 등록 요건을 갖춘 해체재활용업소에서 수행하여야 한다.
+- 관내에 지정업소가 없는 경우, 시장·군수는 인근 시군 소재 지정업소를 활용하거나 관내 업소를 한시적으로 임시 지정할 수 있다.
+- 지정업소 현황은 농촌진흥청 농사로(www.nongsaro.go.kr)에서 상시 확인 가능하다.
+
+2. 대상 확인
+- 생산연도 확인 : 기계 명판 또는 등록원부
+- 소유기간 확인 : 6개월 이상 (매매·양도 직후 신청 불가)
+- 면세유 공급보류 및 말소 절차 병행
+
+3. 선정 원칙
+- 예산 범위 내에서 선정하며, 신청이 예산을 초과할 경우 시장이 정하는 기준에 따른다.
+- ※ 우선순위에 관한 명문 규정이 없어 지자체별 편차 발생 (2025년 지적사항)
+
+4. 2025년 파주시 적용 현황
+- 관내 해체재활용업소 없음 → 대동공업 신파주대리점 등 3곳 한시적 임시 지정
+- 일부 물량은 양주 소재 업체를 활용`
+  },
+  {
+    id:'d04', name:'04_2025년_사업시행문(신청안내).hwp', kind:'공문',
+    desc:'전년도 신청안내 · 홍보 경로',
+    content:`2025년 노후 농업기계 미세먼지 저감대책 지원사업 신청 안내
+
+수신 : 읍·면·동장, 농업인상담실장, 단위농협조합장, 폐차지정업소 대표
+제목 : 2025년 노후 농업기계 미세먼지 저감대책 지원사업 신청 안내
+
+1. 노후 경유 농업기계 조기폐차 지원과 관련입니다.
+
+2. 아래와 같이 신청을 접수하오니 관내 농업인에게 적극 안내하여 주시기 바랍니다.
+  - 접수기간 : 2025. 4. 1.(화) ~ 4. 18.(금)
+  - 지원대상 : 2011. 12. 31. 이전 생산 트랙터·콤바인을 6개월 이상 소유한 농업인
+  - 접수처 : 농업기술센터 기술보급과 농업기계팀, 임대사업소 북부지소
+  - 구비서류 : 신청서, 신분증 사본, 통장 사본, 면세유 공급보류 및 말소 신청서
+
+3. 홍보 방법
+  - 읍·면·동장, 농업인상담실장, 단위농협조합장, 폐차지정업소 대표를 통한 안내
+  - ※ 파주시 홈페이지 공고는 미실시
+
+4. 폐차 안내
+  - 관내 해체재활용업소가 없어 대동공업 신파주대리점 등 3곳을 임시 지정하여 운영
+  - 처리 물량에 따라 양주 소재 업체 병행 활용
+
+붙임 1. 신청서 서식 1부.
+     2. 보조금 산정 기준 1부.  끝.`
+  },
+  {
+    id:'d05', name:'05_2026년_신청서_서식.hwp', kind:'서식',
+    desc:'신청서 · 구비서류 목록',
+    content:`노후 농업기계 미세먼지 저감대책 지원사업 신청서
+
+□ 신청인
+성명 : (예시) 홍○○
+생년월일 : ******-*******
+주소 : 파주시 월롱면 ○○로 ○○
+연락처 : 010-****-****
+농업경영체 등록번호 : ○○○○○○○
+
+□ 대상 농업기계
+구분 : 트랙터 / 콤바인 (해당란 표기)
+제조사 :
+형식·규격 :
+생산연도 : (2012. 12. 31. 이전이어야 함)
+차대번호 :
+소유기간 : 년 월 (6개월 이상)
+
+□ 구비서류
+1. 신청서 1부 (면세유 공급보류 및 말소 신청서 포함)
+2. 소유자 신분증 사본 1부
+3. 보조금 지급요청 통장 사본 1부
+4. 농업경영체 등록확인서 1부
+
+□ 확인사항
+- 1인당 1대 신청을 원칙으로 합니다.
+- 신청이 예산을 초과할 경우 선정되지 않을 수 있습니다.
+- 선정 후 폐차를 이행하지 않으면 지원이 취소됩니다.`
+  },
+  {
+    id:'d06', name:'06_2025년_집행현황.xlsx', kind:'실적',
+    desc:'전년 실적 · 선정률 26.3%',
+    content:`2025년 노후 농업기계 미세먼지 저감대책 지원사업 집행현황 (연말 기준)
+단위 : 건, 천원
+
+구분,신청,선정,선정률
+트랙터,8,2,25.0%
+콤바인,11,3,27.3%
+합계,19,5,26.3%
+
+□ 예산 집행
+편성액 : 25,050천원
+집행액 : 25,050천원
+집행률 : 100%
+불용액 : 0
+
+□ 특이사항
+- 신청 19건 중 5건만 선정되어 14건이 예산 부족으로 미선정
+- 미선정 신청인 다수가 2026년 재신청 의사 표명
+- 관내 폐차 지정업소 부재로 임시 지정 3곳 운영, 일부 물량 양주 소재 업체 이송
+- 우선순위 기준 부재로 선정 과정에서 형평성 관련 문의 다수 발생`
+  },
+  {
+    id:'d07', name:'07_2026년_사업시행문_신청_안내.pdf', kind:'공문',
+    desc:'올해 신청안내 · 접수 3.30~4.17',
+    content:`2026년 노후 농업기계 미세먼지 저감대책 지원사업 신청 안내
+
+수신 : 수신자 참조
+제목 : 2026년 노후 농업기계 미세먼지 저감대책 지원사업 신청 안내
+
+1. 「2026년 노후 농업기계 미세먼지 저감대책 지원사업」 시행지침(농림축산식품부)과 관련입니다.
+
+2. 노후 경유 농업기계(트랙터·콤바인) 조기폐차 지원을 위한 신청을 아래와 같이 접수하오니, 참여를 희망하는 농업인께서는 신청서를 작성하여 2026. 4. 17.(금)까지 제출하여 주시기 바랍니다.
+  - 접수기간 : 2026. 3. 30.(월) ~ 4. 17.(금)
+  - 지원대상 : 2012. 12. 31. 이전 생산된 트랙터·콤바인을 6개월 이상 소유한 농업인
+  - 지원금액 : 트랙터 100~649만원 / 콤바인 100~1,773만원 (제조연도·규격별 차등)
+  - 총 예산 : 22,000천원 (국비 11,000 / 도비 3,300 / 시비 7,700)
+  - 접수처 : 농업기술센터 기술보급과 농업기계팀(031-940-5260), 임대사업소 북부지소(파평면)
+
+3. 폐차는 관내 지정업소(월롱면 소재)를 통해서만 가능함을 안내하오니 업무에 참고하시기 바랍니다.
+
+4. 향후 일정
+  - 2026. 4. 18. ~ 4월 말 : 대상자 확인 및 서류 심사
+  - 2026. 5. ~ 10. : 폐차 이행 및 보조금 지급
+  - 2026. 11. : 정산 및 결과보고
+
+붙임 1. 신청서(면세유 공급보류 및 말소 신청서 포함) 1부.
+     2. 보조금 산정 기준 1부.
+     3. 2026년 사업시행지침 1부.  끝.`
+  },
+  {
+    id:'d08', name:'08_[부서의견조회]_노후_농기계_조기_폐기_지원_조례안.hwp', kind:'조례',
+    desc:'의원발의 조례안 · 의견조회',
+    content:`[부서의견조회] 파주시 노후 농기계 조기 폐기 지원 조례안 (제정)
+
+□ 안건 개요
+안건명 : 「파주시 노후 농기계 조기 폐기 지원 조례안」(제정)
+발의 : ○○○ 의원 발의 (2026. 2. 12.)
+소관 상임위 : 도시산업위원회
+
+□ 제안이유
+노후 경유 농기계로 인한 미세먼지·온실가스 배출을 저감하고 농작업 안전사고 위험을 완화하기 위하여 재정 지원의 근거를 마련하려는 것임.
+
+□ 주요내용
+가. 미세먼지·온실가스 배출 저감 및 농업안전 강화를 위한 노후농기계 조기 폐기 지원 근거 마련(안 제1조)
+나. 노후 농기계 지원대상 명확화 - 소유 6개월 이상(안 제2조, 제6조)
+다. 시장 책무, 연차별 지원계획 수립, 지정폐기업소 관리체계 구축(안 제3조, 제5조, 제9조)
+라. 보조금 지급기준 및 제한사유 규정 - 농업인·법인 대상, 1인1대 원칙(안 제7조, 제8조)
+
+□ 의견조회 요청사항
+- 소관부서 검토의견 (동의 / 수정동의 / 부동의)
+- 예산 소요 및 재원조달 방안
+- 기존 사업과의 중복 여부
+
+□ 회신기한
+2026. 2. 26.(목)까지`
+  },
+  {
+    id:'d09', name:'09_[별표2]_조례_제정·개정·폐지_세부처리절차.hwp', kind:'조례',
+    desc:'입법 절차 15단계',
+    content:`[별표 2] 자치법규 제정·개정·폐지 세부처리절차
+
+1. 입법안 작성 (입안부서)
+2. 초안심사 (법제부서 : 조문형식·법규용어 등 심사)
+3. 입법계획수립(방침결재) — 시장 결재
+4. 의견조회 및 의견반영 (규제영향분석·부패영향평가·성별영향평가 등)
+5. 입법예고 및 의견반영 (20일 이상 시보 게재)
+6. 본심사 (법제부서)
+7. 조례·규칙심의회 심의
+8. 심의결과 통보 및 반영
+9. 입법안 최종결재 (시장 결재)
+10. 조례안 시의회 제출
+11. 시의회 심의·의결
+12. 조례안 이송·접수 (의결일로부터 5일 이내)
+13. (이의 시) 재의요구 → 11번으로 회귀
+14. 공포 전 보고 (경기도 법제부서, 이송일로부터 5일 이내)
+15. 공포 결재 → 공포번호 부여 → 공포 알림
+
+□ 유의사항
+- 입법예고는 20일 이상 확보하여야 하며, 긴급한 경우 단축 사유를 명시한다.
+- 규제를 신설·강화하는 경우 규제영향분석서를 첨부한다.
+- 비용이 수반되는 조례는 비용추계서를 첨부한다.`
+  }
+];
+
+/* 예시 질문 — 필요한 자료가 담겨야 활성화됨 */
+const SAMPLE_QUESTIONS = [
+  {q:'2025년에 이어 2026년에도 계속 시행하는데 사전에 검토해야 할 사항이 뭐야?', need:['01_','04_','06_']},
+  {q:'신청기간과 연간 일정을 타임라인으로 정리해 줘', need:['07_']},
+  {q:'예산이 부족한데 선정률 기준으로 검토해 줘', need:['06_','01_']},
+  {q:'폐차업소가 임시지정인가요?', need:['04_','03_']},
+  {q:'쪽지보고 초안 만들어 줘', need:['07_']},
+  {q:'조례 제정 타임라인 알려줘', need:['09_']},
+  {q:'부서검토의견 정리해 줘', need:['00_']},
+  {q:'2026년 예산이 얼마야?', need:['01_']}
+];
+
+const demoLoaded = new Set();
+
+function demoFileEntry(d){
+  return {
+    name:d.name, content:d.content, isText:true, category:null, categoryId:null,
+    bureau:state.reg.unit||'', dept:state.reg.dept||'', team:state.reg.team||'',
+    fromDemo:true, demoId:d.id
+  };
+}
+function toggleDemoFile(id){
+  const d = DEMO_FILES.find(x=>x.id===id);
+  if(!d) return;
+  if(demoLoaded.has(id)){
+    demoLoaded.delete(id);
+    uploadedFiles = uploadedFiles.filter(f=>f.demoId !== id);
+  } else {
+    demoLoaded.add(id);
+    uploadedFiles.push(demoFileEntry(d));
+    chatMessages.push({role:'file', name:d.name, text:maskPII(d.content), category:null});
+  }
+  afterDemoChange();
+}
+function loadAllDemoFiles(){
+  DEMO_FILES.forEach(d=>{
+    if(demoLoaded.has(d.id)) return;
+    demoLoaded.add(d.id);
+    uploadedFiles.push(demoFileEntry(d));
+  });
+  chatMessages.push({role:'file', name:`데모 자료 ${DEMO_FILES.length}건 전체 담기 완료`, text:'', category:null});
+  afterDemoChange();
+}
+function clearAllDemoFiles(){
+  uploadedFiles = uploadedFiles.filter(f=>!f.fromDemo);
+  demoLoaded.clear();
+  afterDemoChange();
+}
+function afterDemoChange(){
+  renderDemoLibrary();
+  checkMasking();
+  refreshTreeAccordions();
+  refreshFileCategoryOptions();
+  renderChatLog();
+  autoShowReport();
+}
+function renderDemoLibrary(){
+  const box = document.getElementById('demoLibList');
+  if(!box) return;
+  box.innerHTML = DEMO_FILES.map(d=>{
+    const on = demoLoaded.has(d.id);
+    return `<div class="demo-item ${on?'on':''}" data-id="${d.id}">
+      <span class="dchk">${on?'✓':'+'}</span>
+      <span class="dmain">
+        <span class="dname">${d.name}</span>
+        <span class="ddesc">${d.desc}</span>
+      </span>
+      <span class="dkind">${d.kind}</span>
+    </div>`;
+  }).join('');
+  const cnt = document.getElementById('demoLibCount');
+  if(cnt) cnt.textContent = `${demoLoaded.size} / ${DEMO_FILES.length}건 담김`;
+}
+document.getElementById('demoLibList').addEventListener('click', (e)=>{
+  const row = e.target.closest('.demo-item');
+  if(row) toggleDemoFile(row.dataset.id);
+});
+document.getElementById('demoLoadAllBtn').addEventListener('click', loadAllDemoFiles);
+
+/* ---------- ✍ 직접 입력 → 업무 자료로 담기 ---------- */
+let typedSeq = 0;
+const typedTextEl  = document.getElementById('typedText');
+const typedTitleEl = document.getElementById('typedTitle');
+const typedAddBtn  = document.getElementById('typedAddBtn');
+const typedAiBtn = document.getElementById('typedAiBtn');
+function refreshTypedBtn(){
+  const len = typedTextEl.value.trim().length;
+  document.getElementById('typedCount').textContent = len ? (len + '자') : '0자';
+  typedAddBtn.disabled = len === 0;
+  typedAddBtn.classList.toggle('ok', len > 0);
+  /* ✨ 버튼은 '내용 있음 + 실시간 AI 연결됨' 일 때만 활성 */
+  const aiReady = len > 0 && LIVE.on && LIVE.key;
+  typedAiBtn.disabled = !aiReady;
+  typedAiBtn.classList.toggle('ok', !!aiReady);
+  const hint = document.getElementById('typedAiHint');
+  if(hint && !hint.classList.contains('err')){
+    hint.innerHTML = (LIVE.on && LIVE.key)
+      ? '✨ 실시간 AI 연결됨 — 입력한 메모를 <b>공문 문체 개조식</b>으로 다듬어 담습니다.'
+      : '✨ 버튼은 채팅창 우측 상단 <b>⚡</b>에서 실시간 AI를 연결하면 사용할 수 있습니다. 입력한 메모를 공문 문체로 다듬어 담습니다.';
+  }
+}
+typedTextEl.addEventListener('input', refreshTypedBtn);
+function pushTypedEntry(body, namePrefix){
+  const title = typedTitleEl.value.trim();
+  typedSeq += 1;
+  const base = title ? title.replace(/[\\/:*?"<>|]/g,'') : '직접입력_메모' + typedSeq;
+  const name = (namePrefix || '') + base + '.txt';
+  const catSel = document.getElementById('fileCategory');
+  const categoryId = catSel ? (catSel.value || null) : null;
+  const categoryNode = categoryId ? (findNode(budgetTree, categoryId) || findNode(otherWorkList, categoryId)) : null;
+  uploadedFiles.push({
+    name, content: body, isText: true,
+    category: categoryNode ? categoryNode.name : null, categoryId,
+    bureau: state.reg.unit||'', dept: state.reg.dept||'', team: state.reg.team||'',
+    fromTyped: true
+  });
+  chatMessages.push({role:'file', name, text: maskPII(body), category: categoryNode ? categoryNode.name : null});
+  typedTextEl.value = ''; typedTitleEl.value = '';
+  refreshTypedBtn();
+  checkMasking();
+  refreshTreeAccordions();
+  refreshFileCategoryOptions();
+  renderChatLog();
+  autoShowReport();   /* 담는 즉시 우측 '문서 생성'에 반영 */
+}
+typedAddBtn.addEventListener('click', ()=>{
+  const body = typedTextEl.value.trim();
+  if(body) pushTypedEntry(body, '');
+});
+
+/* ✨ AI로 정리해서 담기 — 구어체 메모를 공문 개조식으로 변환한 뒤 담음 */
+function typedAiPrompt(raw){
+  return [
+    '당신은 대한민국 지방자치단체(파주시)의 공문서 작성을 돕는 비서입니다.',
+    '아래 담당자의 메모를 행정문서에 바로 넣을 수 있는 형태로 다듬어 주세요.',
+    '',
+    '규칙:',
+    '1) 구어체·사담(예: "팀장님이랑 얘기했는데")은 제거하고 행정 문체로 바꿉니다.',
+    '2) 각 항목은 "○ "로 시작하는 개조식 한 줄로 만듭니다. 한 줄은 60자 이내로 합니다.',
+    '3) 메모에 없는 사실·수치·날짜는 절대 만들어내지 않습니다.',
+    '4) 내용이 성격상 나뉘면 "□ 현황", "□ 문제점", "□ 향후계획" 같은 소제목을 붙여도 됩니다.',
+    '5) 설명이나 머리말 없이 정리된 본문만 출력합니다.',
+    '',
+    '===== 담당자 메모 =====',
+    raw
+  ].join('\n');
+}
+typedAiBtn.addEventListener('click', async ()=>{
+  const raw = typedTextEl.value.trim();
+  const hint = document.getElementById('typedAiHint');
+  if(!raw || !(LIVE.on && LIVE.key)) return;
+  typedAiBtn.disabled = true;
+  typedAiBtn.classList.remove('ok');
+  typedAiBtn.classList.add('busy');
+  typedAiBtn.textContent = '✨ 정리 중…';
+  hint.classList.remove('err');
+  try{
+    const out = await callLiveAI(typedAiPrompt(raw), 'CITY', '메모 정리');
+    typedTextEl.value = out.trim();
+    pushTypedEntry(out.trim(), '(AI정리) ');
+    hint.classList.remove('err');
+    hint.innerHTML = '✓ AI가 공문 문체로 정리해 담았습니다. 담긴 자료 목록에서 확인하세요.';
+  }catch(err){
+    hint.classList.add('err');
+    hint.textContent = 'AI 정리 실패 : ' + err.message + ' — [＋ 자료로 담기]로 원문 그대로 담으실 수 있습니다.';
+  }finally{
+    typedAiBtn.classList.remove('busy');
+    typedAiBtn.textContent = '✨ AI로 정리해서 담기';
+    refreshTypedBtn();
+  }
+});
+refreshTypedBtn();
+document.getElementById('demoClearBtn').addEventListener('click', clearAllDemoFiles);
+renderDemoLibrary();
+
+/* ===================== 채팅 입력 ===================== */
+const chatInputEl = document.getElementById('chatInput');
+function autoResizeChatInput(){
+  chatInputEl.style.height = 'auto';
+  chatInputEl.style.height = Math.min(chatInputEl.scrollHeight, 160) + 'px';
+}
+chatInputEl.addEventListener('input', autoResizeChatInput);
+
+function sendChat(q){
+  const text = (q!==undefined ? q : chatInputEl.value).trim();
+  if(!text) return;
+  chatMessages.push({role:'user', text});
+  chatInputEl.value = '';
+  autoResizeChatInput();
+  state.chatThinking = true;
+  renderChatLog();
+  const delay = 650 + Math.floor(Math.random()*750);
+  setTimeout(async ()=>{
+    const ans = answerQuestion(text);
+    /* 시나리오에 없는 질문 → 실시간 AI 호출 (연결된 경우에만) */
+    if(ans.liveRequest){
+      try{
+        const out = await callLiveAI(text, ans.scope, ans.scopeLabel);
+        state.chatThinking = false;
+        chatMessages.push({role:'ai', text:out, note:`※ 실시간 AI 응답 (${LIVE.model}) · 첨부 자료 본문을 근거로 생성되었습니다. 결재 전 담당자 확인이 필요합니다.`});
+      }catch(err){
+        state.chatThinking = false;
+        chatMessages.push({
+          role:'ai',
+          text:`실시간 AI 호출에 실패했습니다.\n\n사유 : ${err.message}\n\nAPI 키·모델명·네트워크 상태를 확인해 주세요. 채팅창 우측 상단 ⚡ 버튼에서 다시 설정하실 수 있습니다.`,
+          note:'※ 실시간 연결 실패 — 사전 시나리오 질문은 계속 정상 동작합니다.'
+        });
+      }
+      renderChatLog();
+      refreshTreeAccordions();
+      chatInputEl.focus();
+      return;
+    }
+    state.chatThinking = false;
+    chatMessages.push({role:'ai', text:ans.text, note:ans.note});
+    renderChatLog();
+    refreshTreeAccordions();
+    chatInputEl.focus();
+  }, delay);
+}
+document.getElementById('chatSendBtn').addEventListener('click', ()=> sendChat());
+chatInputEl.addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); sendChat(); }
+});
+
+/* ===================== 컬럼 폭 드래그 조절 (사이드바↔보고서, 보고서↔인수인계) ===================== */
+function makeColumnResizable(handle, targetEl, side, minWidth, maxWidth){
+  if(!handle || !targetEl) return;
+  let startX = 0, startWidth = 0;
+  function onMove(e){
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const dx = clientX - startX;
+    let newWidth = side === 'left' ? startWidth + dx : startWidth - dx;
+    newWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
+    targetEl.style.flex = `0 0 ${newWidth}px`;
+    targetEl.style.width = newWidth + 'px';
+  }
+  function onUp(){
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('touchend', onUp);
+    handle.classList.remove('dragging');
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  }
+  function onDown(e){
+    startX = e.touches ? e.touches[0].clientX : e.clientX;
+    startWidth = targetEl.getBoundingClientRect().width;
+    handle.classList.add('dragging');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    document.addEventListener('touchmove', onMove, {passive:false});
+    document.addEventListener('touchend', onUp);
+    e.preventDefault();
+  }
+  handle.addEventListener('mousedown', onDown);
+  handle.addEventListener('touchstart', onDown, {passive:false});
+  /* 더블클릭하면 기본 폭으로 복원 */
+  handle.addEventListener('dblclick', ()=>{
+    targetEl.style.flex = '';
+    targetEl.style.width = '';
+  });
+}
+makeColumnResizable(document.getElementById('colResizer1'), document.querySelector('aside.sidebar'), 'left', 260, 560);
+makeColumnResizable(document.getElementById('colResizer2'), document.getElementById('reportPanel'), 'right', 340, 720);
+
+
+/* ===================== 사용순서 안내 (코치마크) =====================
+   처음 열어보는 직원이 어디부터 눌러야 할지 알 수 있도록, 실제 화면 요소를
+   순서대로 짚어 주는 안내입니다. 최초 1회 자동 실행 · 상단 ❔ 버튼으로 재실행. */
+const COACH_STEPS = [
+  {
+    el:'regSection', place:'right',
+    title:'먼저 소속을 등록해 주세요',
+    desc:'국·과·팀을 고르고 파일을 등록하면 시작됩니다.<br>빠르게 둘러보시려면 <b>[▶ 데모 소속·예산 자동 채우기]</b> 버튼 한 번이면 됩니다.'
+  },
+  {
+    el:'demoLoadAllBtn', place:'right',
+    title:'예제 자료를 담아 보세요',
+    desc:'실제 업무 문서를 가공한 <b>예제 파일 10건</b>이 준비돼 있습니다.<br><b>[전체 담기]</b>를 누르면 모든 기능을 바로 써 보실 수 있습니다.<br>아래 <b>✍ 직접 입력</b>에 메모를 붙여넣어도 문서로 변환됩니다.'
+  },
+  {
+    el:'centerScroll', cardEl:'scopeTabBar', place:'below',
+    title:'AI 업무비서에게 물어보세요',
+    desc:'화면에 뜬 <b>예시 질문</b>을 클릭하면 바로 답변이 나옵니다.<br>직접 입력하셔도 됩니다.'
+  },
+  {
+    el:'reportBtnGrid', place:'left',
+    title:'문서로 바꿔 보세요',
+    desc:'담은 자료를 <b>공문서·쪽지보고·인수인계서 등 7종 서식</b>으로 자동 변환합니다.<br>복사·다운로드도 가능합니다.'
+  },
+  {
+    el:'liveBtn', place:'below',
+    title:'(선택) 실시간 AI 연결',
+    desc:'API 키를 넣으면 <b>사전 시나리오에 없는 질문</b>도 실제 AI가 답변합니다.<br>키 없이도 위 기능은 모두 동작합니다.'
+  }
+];
+
+let coachIdx = 0;
+const coachLayer = document.getElementById('coachLayer');
+
+function coachVisible(el){
+  if(!el) return false;
+  const r = el.getBoundingClientRect();
+  return r.width > 0 && r.height > 0;
+}
+function positionCoach(step){
+  const el = document.getElementById(step.el);
+  if(!coachVisible(el)) return false;
+  const ringR = el.getBoundingClientRect();
+  const anchor = step.cardEl ? document.getElementById(step.cardEl) : el;
+  const r = (anchor && coachVisible(anchor)) ? anchor.getBoundingClientRect() : ringR;
+  const pad = 6;
+  const ring = document.getElementById('coachRing');
+  ring.style.left = (ringR.left - pad) + 'px';
+  ring.style.top = (ringR.top - pad) + 'px';
+  ring.style.width = (ringR.width + pad*2) + 'px';
+  ring.style.height = (ringR.height + pad*2) + 'px';
+
+  const card = document.getElementById('coachCard');
+  const arrow = document.getElementById('coachArrow');
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const cw = 290, ch = card.offsetHeight || 210;
+  let cx, cy, ax, ay, dir;
+
+  if(step.place === 'right' && r.right + 40 + cw < vw){
+    cx = r.right + 44; cy = Math.min(Math.max(12, r.top), vh - ch - 12);
+    ax = r.right + 8;  ay = Math.min(Math.max(18, r.top + r.height/2 - 16), vh - 40);
+    dir = 'right'; arrow.textContent = '▶';
+  } else if(step.place === 'left' && r.left - 40 - cw > 0){
+    cx = r.left - cw - 44; cy = Math.min(Math.max(12, r.top), vh - ch - 12);
+    ax = r.left - 36;      ay = Math.min(Math.max(18, r.top + r.height/2 - 16), vh - 40);
+    dir = 'right'; arrow.textContent = '▶';
+  } else if(r.bottom + ch + 40 < vh){
+    cx = Math.min(Math.max(12, r.left + r.width/2 - cw/2), vw - cw - 12);
+    cy = r.bottom + 44;
+    ax = r.left + r.width/2 - 15; ay = r.bottom + 6;
+    dir = 'down'; arrow.textContent = '▼';
+  } else {
+    cx = Math.min(Math.max(12, r.left + r.width/2 - cw/2), vw - cw - 12);
+    cy = Math.max(12, r.top - ch - 44);
+    ax = r.left + r.width/2 - 15; ay = r.top - 40;
+    dir = 'up'; arrow.textContent = '▲';
+  }
+  card.style.left = cx + 'px'; card.style.top = cy + 'px';
+  arrow.style.left = ax + 'px'; arrow.style.top = ay + 'px';
+  arrow.className = 'coach-arrow ' + dir;
+  return true;
+}
+function renderCoach(){
+  const step = COACH_STEPS[coachIdx];
+  if(!step){ endCoach(); return; }
+  document.getElementById('coachStepNo').textContent = 'STEP ' + (coachIdx+1) + ' / ' + COACH_STEPS.length;
+  document.getElementById('coachTitle').innerHTML = step.title;
+  document.getElementById('coachDesc').innerHTML = step.desc;
+  document.getElementById('coachDots').innerHTML =
+    COACH_STEPS.map((_,i)=>`<span class="coach-dot ${i===coachIdx?'on':''}"></span>`).join('');
+  document.getElementById('coachPrevBtn').style.display = coachIdx===0 ? 'none' : 'inline-block';
+  document.getElementById('coachNextBtn').textContent = (coachIdx===COACH_STEPS.length-1) ? '시작하기' : '다음';
+  if(!positionCoach(step)){ coachIdx++; renderCoach(); }   /* 숨겨진 단계는 건너뜀 */
+}
+function startCoach(){
+  coachIdx = 0;
+  coachLayer.classList.add('on');
+  requestAnimationFrame(renderCoach);
+}
+function endCoach(){ coachLayer.classList.remove('on'); }
+
+document.getElementById('coachNextBtn').addEventListener('click', ()=>{
+  if(coachIdx >= COACH_STEPS.length-1){ endCoach(); return; }
+  coachIdx++; renderCoach();
+});
+document.getElementById('coachPrevBtn').addEventListener('click', ()=>{
+  if(coachIdx>0){ coachIdx--; renderCoach(); }
+});
+document.getElementById('coachSkipBtn').addEventListener('click', endCoach);
+document.getElementById('helpBtn').addEventListener('click', startCoach);
+window.addEventListener('resize', ()=>{
+  if(coachLayer.classList.contains('on')) positionCoach(COACH_STEPS[coachIdx]);
+});
+/* 최초 진입 시 자동 안내 */
+setTimeout(startCoach, 600);
+
+/* ===================== 초기화 ===================== */
+renderOtherTree();
+renderScopeTabs();
+renderFeatBar();
+renderCenter();
+</script>
+</body>
+</html>
