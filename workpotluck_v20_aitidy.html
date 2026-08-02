@@ -60,9 +60,20 @@ header.top{
   border-bottom:1px solid rgba(139,92,246,.25);
   box-shadow:0 2px 18px rgba(11,16,32,.35);
 }
-.tb-logo{font-family:var(--display);font-weight:400;font-size:19px;letter-spacing:.01em;white-space:nowrap;}
+.tb-logo{font-family:var(--display);font-weight:400;font-size:22px;letter-spacing:.01em;white-space:nowrap;display:flex;align-items:center;}
 .tb-logo span{
   background:var(--grad-cool);-webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.tb-logo .tb-logo-paju{
+  font-size:1.1em;margin-right:1px;
+  background:linear-gradient(120deg,#7DD3FC 0%,#0284C7 48%,#0C2A6B 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 10px rgba(14,165,233,.65));
+}
+.tb-logo .tb-logo-arrow{
+  display:inline-block;font-size:.62em;color:#38BDF8;font-family:var(--sans);font-weight:800;
+  transform:translate(0,-9px);margin-right:2px;
+  filter:drop-shadow(0 0 6px rgba(56,189,248,.85));
 }
 .seal-stamp{
   flex:none;width:32px;height:32px;border-radius:50%;border:none;
@@ -678,7 +689,7 @@ pre.doc-body{white-space:pre-wrap;word-break:keep-all;font-family:var(--sans);fo
 <div id="app">
   <header class="top"></header>
   <div class="topbar">
-    <div class="tb-logo">파주 Work<span>Potluck</span> <span style="font-family:var(--sans);font-weight:400;font-size:11.5px;color:#B9C7D6;">(워크포트락)</span></div>
+    <div class="tb-logo"><span class="tb-logo-paju">파주</span><span class="tb-logo-arrow">↗</span>Work<span>Potluck</span> <span style="font-family:var(--sans);font-weight:400;font-size:11.5px;color:#B9C7D6;">(워크포트락)</span></div>
     <div class="seal-stamp" aria-hidden="true">AI</div>
     <div class="tb-div"></div>
     <div class="tb-chip">일잘러 AI (6조)</div>
