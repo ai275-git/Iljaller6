@@ -730,13 +730,13 @@ pre.doc-body{white-space:pre-wrap;word-break:keep-all;font-family:var(--sans);fo
                     <select id="selTeam" disabled><option value="">팀 선택</option></select>
                   </div>
                   <div id="orgPreview" style="margin-top:8px;font-size:12.5px;">현재 선택 : <span id="orgPreviewText" style="color:#98a0ab;">(미선택)</span></div>
-                  <div class="reg-hint">파주시 워크포트락 데모버전이므로, 담당자는 <b>농업기술센터-기술보급과-농업기계팀 김파주 주무관</b>으로 지정되어 시연됩니다.</div>
+                  <div class="reg-hint">소속 부서는 국·과·팀 중 어디든 자유롭게 선택하실 수 있습니다.</div>
                 </div>
                 <div>
-                  <div class="reg-sec-label">② 직위/직급 · 성명 <span class="sub">· 고정값(데모)</span></div>
+                  <div class="reg-sec-label">② 직위/직급 · 성명 <span class="sub">· 직접 입력</span></div>
                   <div class="two-col-reg">
-                    <input type="text" id="staffTitle" value="주무관" disabled>
-                    <input type="text" id="staffName" value="김파주" disabled>
+                    <input type="text" id="staffTitle" value="주무관" placeholder="직위/직급">
+                    <input type="text" id="staffName" value="김파주" placeholder="성명">
                   </div>
                 </div>
                 <div>
@@ -835,7 +835,7 @@ pre.doc-body{white-space:pre-wrap;word-break:keep-all;font-family:var(--sans);fo
               <div class="agent-title-right">
                 <button class="feat-btn" id="featBtn">💬 <span id="featBtnLabel">ChatAgent</span> <span style="color:#98a0ab;font-size:9px;">▾</span></button>
                 <button class="model-chip" id="modelChip"><span class="gdot"></span><span id="modelLabel">Claude Sonnet 5</span> <span style="color:#98a0ab;font-size:9px;">▾</span></button>
-                <button class="live-btn" id="liveBtn" title="실시간 AI 연결 설정">⚡ <span id="liveBtnLabel">시나리오</span></button>
+                <button class="live-btn" id="liveBtn" title="실시간 AI 연결 설정">⚡ <span id="liveBtnLabel">미연결</span></button>
                 <div class="feat-dropdown" id="featDropdown"></div>
                 <div class="model-dropdown" id="modelDropdown"></div>
               </div>
@@ -900,11 +900,11 @@ pre.doc-body{white-space:pre-wrap;word-break:keep-all;font-family:var(--sans);fo
         <div class="constraint-box">
           본 웹 프로그램은 「2026년도 파주시 AI 전문가 교육 및 동아리 활동」의 동아리 제6조(일잘러_AI팀)의 과제 산출물입니다.<br>
           · 프로그램의 구동은 <b class="kw">데모 버전</b>으로, 실제 업무(노후 농업기계 지원사업 등)를 기반으로 가공하여 구성하였습니다.<br>
-          · 기본 동작은 실제 AI의 사전 답변을 기반으로 한 <b class="kw">시나리오 방식</b>이며, 시연 시에는 <b class="kw">가운데 채팅창의 ⚡ 버튼</b>에서 API 키를 넣어 <b class="kw">동일 구조가 실시간으로도 작동함</b>을 바로 확인하실 수 있습니다.<br>
+          · 기본 동작은 <b class="kw">실시간 AI 연동 방식</b>이며, 시연 시에는 <b class="kw">가운데 채팅창의 ⚡ 버튼</b>에서 API 키를 넣어 첨부 자료와 파주시 관련 공공기관 공개정보(웹검색) 기반 답변을 바로 확인하실 수 있습니다.<br>
           · 실제 업무망 확산 시에는 보안·개인정보 여건을 고려하여 외부 API 대신 <b class="kw">Ollama 등 폐쇄망 로컬 LLM</b>으로 대체 연동할 계획입니다.
         </div>
         <div class="tier-grid">
-          <div class="tier-item"><h3><span class="kw">🔒 Ollama 폐쇄망 LLM</span></h3><p>내부망 로컬 LLM 연동 시 규칙기반·사전 시나리오 → 실시간 자연어 응답으로 고도화 예정</p></div>
+          <div class="tier-item"><h3><span class="kw">🔒 Ollama 폐쇄망 LLM</span></h3><p>실제 업무망 확산 시 외부 API 대신 폐쇄망 로컬 LLM으로 동일한 실시간 응답 구조 대체 예정</p></div>
           <div class="tier-item"><h3><span class="kw">🗄 Supabase 다중사용자 DB</span></h3><p>부서별 자료를 실시간 공유하는 공동 DB 구조로 확장 예정</p></div>
           <div class="tier-item"><h3><span class="kw">🏛 새올 행정시스템 연동</span></h3><p>인사정보·조직도 자동 동기화 및 예산 데이터 자동 연동 예정</p></div>
           <div class="tier-item" style="margin-bottom:0;"><h3><span class="kw">📎 OCR·엑셀 파서 자동화</span></h3><p>pdf·xls(x)·hwp(미리보기)·hwpx·docx·txt·csv 본문 자동 추출 <b class="kw">적용 완료</b> — 스캔본 OCR·hwp 전체 본문은 지원 예정</p></div>
@@ -938,29 +938,29 @@ pre.doc-body{white-space:pre-wrap;word-break:keep-all;font-family:var(--sans);fo
 <div id="liveModal">
   <div class="live-card">
     <div class="live-head">
-      <div class="lt">⚡ 실시간 AI 연결 (선택)</div>
-      <div class="ls">시나리오에 없는 질문을 실제 AI가 이어서 답변합니다 · 키를 넣지 않으면 기존 시나리오 모드로 동작합니다</div>
+      <div class="lt">⚡ 실시간 AI 연결 (필수)</div>
+      <div class="ls">모든 질문은 실시간 AI가 첨부 자료와 파주시 관련 공공기관 공개정보(웹검색)를 바탕으로 답변합니다</div>
     </div>
     <div class="live-body">
       <div class="live-warn">
         ⚠ <b>주의</b> — 실시간 연결을 켜면 질문과 첨부 자료 본문이 <b>외부 AI 서버로 전송</b>됩니다.<br>
         실제 개인정보·비공개 문서는 절대 올리지 마시고, 데모용 가공 자료만 사용해 주세요.<br>
-        API 키는 이 화면(메모리)에만 보관되며 파일·브라우저에 저장되지 않습니다. 새로고침 시 사라집니다.
+        API 키는 이 화면(메모리)에만 보관되며 파일·브라우저·저장소에 저장되지 않습니다. 새로고침 시 사라집니다.
       </div>
       <div class="live-field">
         <label>API 키</label>
         <input type="password" id="liveKeyInput" placeholder="Google AI Studio에서 발급한 Gemini API 키 붙여넣기" autocomplete="off">
-        <div class="live-hint">aistudio.google.com → Get API key → 무료 티어로 발급 가능 (카드 등록 불필요)</div>
+        <div class="live-hint">aistudio.google.com → Get API key → 무료 티어로 발급 가능. 이 키는 이 브라우저 탭 메모리에만 보관되며 절대 코드/저장소에 저장하지 마세요.</div>
       </div>
       <div class="live-field">
         <label>모델명</label>
         <input type="text" id="liveModelInput" value="gemini-2.5-flash" autocomplete="off">
-        <div class="live-hint">호출 실패(404) 시 gemini-2.0-flash 등 사용 가능한 모델명으로 바꿔 주세요.</div>
+        <div class="live-hint">Google Search 웹검색 연동(그라운딩) 지원 모델 · 호출 실패(404) 시 gemini-2.0-flash 등으로 바꿔 주세요.</div>
       </div>
       <div class="live-status" id="liveStatus"></div>
     </div>
     <div class="live-foot">
-      <button class="live-off" id="liveOffBtn">연결 해제 (시나리오 모드)</button>
+      <button class="live-off" id="liveOffBtn">연결 해제</button>
       <div style="flex:1;"></div>
       <button class="live-cancel" id="liveCancelBtn">닫기</button>
       <button class="live-save" id="liveSaveBtn">연결하기</button>
@@ -2342,34 +2342,17 @@ function renderChatLog(){
   }
   scrollChatToBottom();
 }
-/* 담긴 자료로 지금 바로 답변 가능한 예시 질문만 활성화해서 보여줌 */
+/* 예시 질문 칩 — 실시간 AI가 담긴 자료·공개정보를 바탕으로 바로 답변 */
 function sampleQuestionHtml(){
-  const has = kw => uploadedFiles.some(f=>f.name.includes(kw));
-  const items = SAMPLE_QUESTIONS.map(sq=>{
-    const ready = sq.need.every(kw=>has(kw));
-    return {q:sq.q, ready};
+  let html = '<div class="qchip-wrap"><div class="qchip-title">예시 질문</div>';
+  SAMPLE_QUESTIONS.slice(0,8).forEach(sq=>{
+    html += `<button class="qchip" data-q="${sq.q.replace(/"/g,'&quot;')}">${sq.q}</button>`;
   });
-  const ready = items.filter(i=>i.ready);
-  const locked = items.filter(i=>!i.ready);
-  let html = '<div class="qchip-wrap">';
-  if(ready.length){
-    html += '<div class="qchip-title">지금 바로 물어볼 수 있는 질문</div>';
-    ready.slice(0,5).forEach(i=>{
-      html += `<button class="qchip" data-q="${i.q.replace(/"/g,'&quot;')}">${i.q}</button>`;
-    });
-  }
-  if(locked.length){
-    html += `<div class="qchip-title" style="margin-top:10px;">자료를 담으면 열리는 질문 (${locked.length})</div>`;
-    locked.slice(0,3).forEach(i=>{
-      html += `<button class="qchip locked" disabled>${i.q}<span class="qlock">자료 필요</span></button>`;
-    });
-    html += `<div class="qchip-title" style="margin-top:8px;font-weight:600;color:#a7aeb8;">← 좌측 '데모 자료실'에서 [전체 담기]를 누르면 모두 열립니다.</div>`;
-  }
   html += '</div>';
   return html;
 }
 function bindSampleQuestions(log){
-  log.querySelectorAll('.qchip:not(.locked)').forEach(btn=>{
+  log.querySelectorAll('.qchip').forEach(btn=>{
     btn.addEventListener('click', ()=> sendChat(btn.dataset.q));
   });
 }
@@ -2381,359 +2364,28 @@ function scrollChatToBottom(){
   });
 }
 
-/* ===================== 파주시 AI 업무비서 — 약속대련(사전 시나리오) 질의응답 ===================== */
-const SCRIPTED_QA = [
-  {
-    keys: ["검토해야할 사항","검토해야 할 사항","사전에 검토","계속 시행하는데","이어 2026년에도"],
-    requireAny: ["01_", "04_", "06_", "예산서", "집행현황"],
-    requireLabel: "01_2026년_예산서.xls, 04_2025년_사업시행문(신청안내), 06_2025년_집행현황.xlsx",
-    a: `『노후 농업기계 미세먼지 저감대책 지원사업』은 2025년에 이어 2026년에도 계속 시행됩니다. 첨부해 주신 자료를 종합적으로 검토해 본 결과, 사전에 점검이 필요한 사항이 세 가지로 확인됩니다.
-
-1. 폐차업소 지정 현황
-   2025년에는 관내에 노후 농업기계 해체재활용업소가 없어 대동공업 신파주대리점 등 3곳을 한시적으로 임시 지정해 운영하셨습니다. 2026년 현재는 월롱면에 정식 지정된 업소가 1곳 확인됩니다. 최신 현황은 농촌진흥청 농사로에서 상시 확인하실 수 있습니다.
-   - https://www.nongsaro.go.kr/portal/ps/psx/psxu/fchDsmntlRuseBzmnAppnMain.ps?menuId=PS65495
-   관내 지정업소가 있으므로 2025년처럼 임시 지정 절차를 다시 밟기보다, 해당 업소를 우선 활용하고 처리 물량에 따라 인근 시·군 업소(예: 2025년 활용했던 양주 소재 업체)를 보조로 검토하시는 방향이 안전할 것 같습니다.
-
-2. 신청자 모집 방법
-   2025년에는 읍·면·동장, 농업인상담실장, 단위농협조합장, 폐차지정업소 대표를 통한 홍보로 진행되었습니다. 여기에 파주시 홈페이지 공고를 병행하시면 접근성이 높아질 것으로 보이며, 이는 사업시행지침에서 권장하는 홍보 방법(지자체 홈페이지 안내·게시판 공고·반상회보 게재)과도 일치합니다.
-
-3. 예산이 부족할 가능성이 있습니다
-   2025년 실적을 보면 신청 19건(트랙터 8 / 콤바인 11) 중 5건만 선정되어 선정률이 26.3%에 그쳤습니다. 그런데 2026년 예산은 22,000천원으로 전년(25,050천원)보다 오히려 3,050천원 줄어 있어, 신청 대비 예산 부족 문제가 더 심화될 가능성이 큽니다. 사전에 증액 필요성을 검토해 보시길 권해드립니다.
-
-각 항목에 대해 더 자세히 알고 싶으시면 "폐차업소는 임시지정인가요?", "참여자 모집 방법을 검토해 주세요", "예산이 부족한데 검토해 주세요"처럼 구체적으로 다시 물어봐 주세요.`
-  },
-  {
-    keys: ["신청기간","접수기간","언제까지","연간","스케줄","일정","타임라인","체크리스트"],
-    requireAny: ["07_"],
-    requireLabel: "07_2026년_사업시행문_노후_농업기계_미세먼지_저감대책_지원사업_신청_안내.pdf",
-    a: `『2026년 노후 농업기계 미세먼지 저감대책 지원사업』 타임라인을 표로 정리해 드립니다.
-
-■ 추진 일정표
-
-  날짜                       할 일
-  ─────────────────────────────────────────
-  2026. 3. 30.(월)           신청 접수 시작
-  2026. 4. 17.(금)           신청 접수 마감
-  2026. 4. 18. ~ 4월 말      대상자 확인 및 서류 심사 (생산연도 오래된 순 우선 선정)
-  2026. 5. ~ 10.             폐차 이행 및 보조금 지급 (입고확인서 → 폐차확인서 → 보조금 산정·지급)
-  회계연도 종료 후 1개월 이내   정산 및 결과보고서 제출
-
-■ 체크리스트
-☐ 신청서(면세유 공급보류 및 말소 신청서 포함) 1부
-☐ 소유자 신분증 사본 1부
-☐ 보조금 지급요청 통장 사본 1부
-☐ 대상 기계 6개월 이상 소유 여부 확인
-☐ 2012.12.31. 이전 생산 트랙터·콤바인 여부 확인
-
-「02_2026년 사업시행지침」의 절차와 「07_2026년 사업시행문」의 신청기간을 함께 반영해 정리했습니다.
-
-📌 좌측 '담당세부사업 / AI 업무 협업 범위'에서도 방금 만든 사업 진행 현황을 확인하실 수 있습니다.`,
-    revealsTimeline: true
-  },
-  {
-    keys: ["폐차업소","폐차 업체","임시지정","임시 지정","해체재활용","월롱면"],
-    requireAny: ["04_", "03_"],
-    requireLabel: "04_2025년_사업시행문(폐차 신청 안내), 03_2025년_사업시행지침",
-    a: `2025년에는 관내에 노후 농업기계 해체재활용업소가 없어 대동공업 신파주대리점 등 3곳을 한시적으로 임시 지정해 운영하셨습니다.
-
-2026년 현재는 월롱면에 정식 지정된 업소가 1곳 확인됩니다. 최신 현황은 농촌진흥청 농사로에서 상시 확인하실 수 있습니다.
-- https://www.nongsaro.go.kr/portal/ps/psx/psxu/fchDsmntlRuseBzmnAppnMain.ps?menuId=PS65495
-
-관내 지정업소가 있으므로 2025년처럼 임시 지정 절차를 다시 밟기보다, 해당 업소를 우선 활용하고 처리 물량에 따라 인근 시·군 업소(예: 2025년 활용했던 양주 소재 업체)를 보조로 검토하시는 방향이 안전할 것 같습니다.`
-  },
-  {
-    keys: ["참여자 모집","모집 방법","홈페이지 공고","공고 검토"],
-    requireAny: ["04_"],
-    requireLabel: "04_2025년_사업시행문(신청 안내)",
-    a: `참여자 모집(홈페이지 공고) 방법에 대해 검토해 드립니다.
-
-2025년에는 읍·면·동장, 농업인상담실장, 단위농협조합장, 폐차지정업소 대표를 통한 홍보로 진행되었습니다(04번 자료). 여기에 파주시 홈페이지 공고를 병행하시면 접근성이 높아질 것으로 보이며, 이는 사업시행지침에서 권장하는 홍보 방법(지자체 홈페이지 안내·게시판 공고·반상회보 게재)과도 일치합니다.
-
-2026년 공고 게재 여부는 신청 안내 문서가 확정되는 대로 다시 확인해 드리겠습니다.`
-  },
-  {
-    keys: ["예산부족","예산 부족","증액","신청자 대비","선정률"],
-    requireAny: ["06_", "01_", "집행현황", "예산서"],
-    requireLabel: "01_2026년_예산서.xls, 06_2025년_집행현황.xlsx",
-    a: `2025년 집행현황(06번 자료) 대비 2026년 예산 편성을 검토해 드립니다.
-
-■ 2025년 집행실적 (연말 기준)
-- 신청 19건(트랙터 8 / 콤바인 11) 대비 선정 5건(트랙터 2 / 콤바인 3)
-- 선정률 약 26.3%로, 신청자 다수가 예산 부족으로 지원받지 못했습니다.
-
-■ 2026년 예산 (01_예산서.xls)
-- 노후 농업기계 미세먼지 저감 대책 지원 : 22,000천원 (국비 11,000 / 도비 3,300 / 시비 7,700)
-- 전년도(25,050천원) 대비 오히려 3,050천원 감액 편성
-
-2025년 낮은 선정률(26.3%)을 감안하면 2026년 수요는 유사하거나 더 늘어날 가능성이 있어, 추경 등을 통한 예산 증액 검토가 필요해 보입니다. 다만 최종 판단은 예산부서 협의가 필요한 사항입니다.`
-  },
-  {
-    keys: ["검색엔진","보도자료","인터넷 연결","외부 연결","실시간 검색"],
-    requireAny: ["07_"],
-    requireLabel: "07_2026년_사업시행문",
-    a: `실시간 검색엔진 연결(외부 인터넷)은 보안상(공공기관 폐쇄망 특성) 지원되지 않지만, 첨부해 주신 「07_2026년 사업시행문」 등 자료를 바탕으로 보도자료 초안을 작성해 드렸습니다.
-
-우측 '보고서 변환'에서 [보도자료] 버튼을 눌러 확인해 주세요. 제목·리드문·본문·담당부서 연락처까지 실제 배포 양식에 맞춰 구성했습니다.
-
-추가로 반영할 최신 통계나 타 시·군 사례가 있으면 자료를 첨부해 주시면 다음 초안에 반영해 드리겠습니다.`
-  },
-  {
-    keys: ["쪽지보고"],
-    requireAny: ["07_"],
-    requireLabel: "07_2026년_사업시행문",
-    a: `노후 농업기계 미세먼지 저감 대책 지원사업 쪽지보고 초안을 안내해 드립니다.
-
-□ 개요
-  ○ 2026년 노후 경유 농업기계(트랙터·콤바인) 조기폐차 지원사업 신청 접수 (3.30.~4.17.)
-  ○ 예산 22,000천원(국비 11,000 / 도비 3,300 / 시비 7,700), 전년 대비 3,050천원 감액
-□ 현재 추진현황
-  ○ 신청 접수 진행 중이며, 관내 폐차 지정업소 1개소(월롱면 소재)가 운영 중
-□ (예상)건의사항
-  ○ 2025년 선정률 26.3%로 신청 대비 예산 부족 → 증액 검토 필요
-  ○ 관내 폐차 지정업소(월롱면 소재 1개소)로 처리물량 집중 우려
-
-정식 서식으로 받으시려면 우측 '보고서 변환'의 [쪽지보고] 버튼을 눌러 주세요. 이 채팅 답변은 요약형 안내입니다.`
-  },
-  {
-    keys: ["법제처","조례제정 현황","전국 시군구","조례 제정 현황"],
-    requireAny: ["08_", "09_", "부서의견조회", "별표"],
-    requireLabel: "08_[부서의견조회] 조례안, 09_[별표 2]",
-    combineGroup: 'ordinance-review',
-    a: function(){
-      let body = `법제처 홈페이지에 실시간 접속하여 전국 시·군·구 조례 제정 현황을 분석하여 업로드하신 「08_[부서의견조회] 조례안」 자료를 바탕으로 조례안 개요를 정리해 드립니다.
-
-■ 의원발의 조례안 개요
-- 안건명 : 「파주시 노후 농기계 조기 폐기 지원 조례안」(제정) (○○○ 의원 발의, 2026. 2. 12.)
-- 제안이유 : 노후 경유 농기계로 인한 미세먼지·온실가스 배출 저감 및 안전사고 위험 완화를 위한 재정 지원 근거 마련
-- 주요내용 :
-  1) 미세먼지·온실가스 배출 저감 및 농업안전 강화를 위한 노후농기계 조기 폐기 지원 근거 마련(안 제1조)
-  2) 노후 농기계 지원대상 명확화 - 소유 6개월 이상(안 제2조, 제6조)
-  3) 시장책무, 연차별 지원계획 수립, 지정폐기업소 관리체계 구축(안 제3조, 제5조, 제9조)
-  4) 보조금 지급기준 및 제한사유 규정 - 농업인·법인 대상, 1인1대 원칙(안 제7조, 제8조)
-
-■ 소관부서 검토의견(추천사항)
-검토의견 : 조례 개정 수정동의
-- 제7조 보조금 지원 등 관련 노후 농기계 조기 폐기 신청이 예산을 초과하는 경우 선정 기준이 불명확한 문제를 해결하기 위해 우선순위를 정하여 형평성 논란을 최소화하기 위한 조례 개정에 동의함
-- 농업기술센터(도시산업위원회 소관) 업무와 연계한 실효성 있는 지원체계 구축을 위한 의원발의 조례안에 동의
-
-■ 검토사항 (1개 항목)
-(의원발의안) 제7조(보조금 지원 등)
-① 시장은 제5조제2항제3호에 따른 노후농기계의 조기 폐기 지원 보조금 지급 기준에 따라 예산의 범위에서 지원할 수 있다.
-② 노후농기계 조기 폐기 지원 보조금 지급 대상은 노후농기계의 소유자로서 다음 각 호의 어느 하나에 해당하는 자로 한다.
-  1. 파주시에 주민등록을 두고 「농어업경영체 육성 및 지원에 관한 법률」에 따른 농업경영정보를 등록한 농업인
-  2. 파주시에 사무소의 소재지를 두고 「농어업경영체 육성 및 지원에 관한 법률」에 따른 농업경영정보를 등록한 농업법인
-③ 시장은 보조금의 우선순위 기준을 정하고 지원 대상을 결정할 수 있다.
-④ 보조금 지급 대상이 2대 이상의 지원 대상 노후농기계를 소유한 경우에는 1인당 1대에 한하여 보조금을 지급한다. 다만, 시장이 필요하다고 인정하는 경우 1인당 2대 이상에 대하여도 보조금을 지급할 수 있다.
-
-(부서 검토의견안) 제7조(보조금 지원 등) — ④항 다음 ⑤항 신설
-⑤ 노후 농기계 조기 폐기 신청이 예산을 초과하는 경우에는 다음 각 호의 순서에 따라 우선 지원한다.
-  1. 생산연도가 오래된 순
-  2. 그 밖에 시장이 정하는 객관적 기준(연령, 경지면적 등)
-
-(검토사유) 선정 기준이 불명확한 문제를 해결하기 위해 신청 초과 시 우선순위를 정해 형평성 논란을 최소화할 수 있음
-
-■ 비용추계
-- 산출내역 : 2,500,000원 × 175대 = 437,500천원 (2026~2030년 5개년 합계)
-- 연차별 : 2026년 62,500 / 2027년 75,000 / 2028년 87,500 / 2029년 100,000 / 2030년 112,500천원
-- 재원조달 : 시비 100%`;
-      return body;
-    }
-  },
-  {
-    keys: ["검토의견","부서검토의견","수정동의"],
-    requireAny: ["00_", "검토결과"],
-    requireLabel: "00_소관부서 검토결과",
-    a: `앞서 안내드린 조례안 개요에 이어, 첨부하신 「00_소관부서 검토결과」를 반영해 소관부서 검토의견을 정리해 드립니다.
-
-■ 소관부서 검토결과
-- 자치법규명 : 「파주시 노후 농기계 조기 폐기 지원 조례안」(제정)
-- 소관부서 : 복지정책과(맞춤형복지지원팀)
-- 검토의견 : 조례 개정 수정동의
-
-■ 검토사항 (1개 항목)
-(의원발의안) 제7조(보조금 지원 등)
-① 시장은 제5조제2항제3호에 따른 노후농기계의 조기 폐기 지원 보조금 지급 기준에 따라 예산의 범위에서 지원할 수 있다.
-② 노후농기계 조기 폐기 지원 보조금 지급 대상은 노후농기계의 소유자로서 다음 각 호의 어느 하나에 해당하는 자로 한다.
-  1. 파주시에 주민등록을 두고 「농어업경영체 육성 및 지원에 관한 법률」에 따른 농업경영정보를 등록한 농업인
-  2. 파주시에 사무소의 소재지를 두고 「농어업경영체 육성 및 지원에 관한 법률」에 따른 농업경영정보를 등록한 농업법인
-③ 시장은 보조금의 우선순위 기준을 정하고 지원 대상을 결정할 수 있다.
-④ 보조금 지급 대상이 2대 이상의 지원 대상 노후농기계를 소유한 경우에는 1인당 1대에 한하여 보조금을 지급한다. 다만, 시장이 필요하다고 인정하는 경우 1인당 2대 이상에 대하여도 보조금을 지급할 수 있다.
-
-(부서 검토의견안) 제7조(보조금 지원 등) — ④항 다음 ⑤항 신설
-⑤ 노후 농기계 조기 폐기 신청이 예산을 초과하는 경우에는 다음 각 호의 순서에 따라 우선 지원한다.
-  1. 생산연도가 오래된 순
-  2. 그 밖에 시장이 정하는 객관적 기준(연령, 경지면적 등)
-
-(검토사유) 선정 기준이 불명확한 문제를 해결하기 위해 신청 초과 시 우선순위를 정해 형평성 논란을 최소화할 수 있음
-
-■ 비용추계
-- 산출내역 : 2,500,000원 × 175대 = 437,500천원 (2026~2030년 5개년 합계)
-- 연차별 : 2026년 62,500 / 2027년 75,000 / 2028년 87,500 / 2029년 100,000 / 2030년 112,500천원 (총 사업량 175세대, 재원 시비 100%)
-
-담당 부서는 농업기술센터(도시산업위원회 소관) 업무와 연계한 실효성 있는 지원체계 구축에 동의하는 취지로 수정동의 의견을 제시했습니다.`
-  },
-  {
-    keys: ["조례 제정 타임라인","별표 2","제정·개정·폐지","제정 절차"],
-    requireAny: ["09_", "별표"],
-    requireLabel: "09_[별표 2] 제정·개정·폐지 세부처리절차",
-    combineGroup: 'ordinance-review',
-    a: `업로드하신 「09_[별표 2] 제정·개정·폐지 세부처리절차」를 반영한 조례 제정 타임라인입니다.
-
-1. 입법안 작성 (입안부서)
-2. 초안심사 (법제부서 : 조문형식·법규용어 등 심사)
-3. 입법계획수립(방침결재) — 시장 결재
-4. 의견조회 및 의견반영 (규제영향분석·부패영향평가·성별영향평가 등)
-5. 입법예고 및 의견반영 (20일 이상 시보 게재)
-6. 본심사 (법제부서)
-7. 조례·규칙심의회 심의
-8. 심의결과 통보 및 반영
-9. 입법안 최종결재 (시장 결재)
-10. 조례안 시의회 제출
-11. 시의회 심의·의결
-12. 조례안 이송·접수 (의결일로부터 5일 이내)
-13. (이의 시) 재의요구 → 11번으로 회귀
-14. 공포 전 보고 (경기도 법제부서, 이송일로부터 5일 이내)
-15. 공포 결재 → 공포번호 부여 → 공포 알림
-
-☐ 체크리스트 : 규제영향분석 필요 여부 확인 / 입법예고 20일 확보 / 조례·규칙심의회 일정 조율 / 시의회 상임위 제안설명 준비
-
-📌 좌측 '담당세부사업 / AI 업무 협업 범위'의 현재 폴더에도 방금 만든 사업 진행 현황을 확인하실 수 있습니다.`,
-    revealsTimeline: true,
-    timelineKeyToAssign: 'ordinance'
-  },
-  {
-    keys: ["예산","사업비","얼마","금액"],
-    requireAny: ["01_", "예산서"],
-    requireLabel: "01_2026년_예산서.xls",
-    a: `기술보급과 2026년도 세부사업 예산 현황을 안내해 드립니다 (단위: 천원).
-
-- 농기계 임대사업소 운영 : 649,680  (국비 14,000 / 도비 4,200 / 시비 631,480)  전년 대비 △36,258
-- 농업기계 안전교육 지원 : 6,000  (국비 3,000 / 도비 900 / 시비 2,100)  전년과 동일
-- 노후 농업기계 미세먼지 저감 대책 지원 : 22,000  (국비 11,000 / 도비 3,300 / 시비 7,700)  전년 대비 △3,050
-
-업로드하신 「01_2026년_예산서.xls」 기준으로 집계했습니다.`
-  },
-  {
-    keys: ["법률검토","법령조회","xlaw"],
-    requireAny: ["08_", "09_"],
-    requireLabel: "08_[부서의견조회] 조례안, 09_[별표 2]",
-    a: `법령 조회 시스템 기능을 통해 관련 법령·조례를 확인했습니다. 「미세먼지 저감 및 관리에 관한 특별법」 제3조(국가와 지방자치단체의 책무), 「농업기계화 촉진법 시행규칙」 제17조(사후관리업자의 시설 및 기술인력 기준)가 본 사업의 근거 법령으로 확인됩니다. 자세한 조문은 좌측 상단 기능 선택에서 '법령 조회 시스템'을 눌러 별도로 질의해 주세요. (현재 프로토타입에서는 ChatAgent 창에서 간이 안내만 제공합니다.)`
-  }
-];
-
-const EXTERNAL_LINK_WORDS = ["검색엔진","법제처 홈페이지","인터넷 연결","외부 연결","웹 크롤링","크롤링","실시간 검색","홈페이지에서"];
-function isExternalLinkRequest(q){ return EXTERNAL_LINK_WORDS.some(w=>q.includes(w)); }
-
-const STOPWORDS = ['얼마','언제','누구','어디','뭐','무엇','있어','있나요','인가요','까지','인지','알려줘','알려주세요','해줘','좀','안내'];
-
-function findScripted(q){
-  let best = null, bestScore = 0;
-  SCRIPTED_QA.forEach(item=>{
-    /* 매칭 개수가 아니라 매칭된 키워드 글자수 합으로 점수 계산 — 더 구체적인(긴) 키워드를 우선시하여
-       "타임라인/일정/스케줄" 같은 범용 키워드로 인한 오매칭을 방지 */
-    const score = item.keys.reduce((s,k)=> s + (q.includes(k)?k.length:0), 0);
-    if(score > bestScore){ bestScore = score; best = item; }
-  });
-  return bestScore > 0 ? best : null;
-}
-function findAllScripted(q){
-  const scored = SCRIPTED_QA.map(item=>{
-    const score = item.keys.reduce((s,k)=> s + (q.includes(k)?k.length:0), 0);
-    return {item, score};
-  }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score);
-  if(scored.length===0) return [];
-  const top = scored[0];
-  if(top.item.combineGroup){
-    const partners = scored.filter(x => x.item.combineGroup === top.item.combineGroup && x.score >= 6);
-    if(partners.length > 1) return partners.map(x=>x.item);
-  }
-  return [top.item];
-}
-function filesReadyFor(item){
-  if(!item.requireAny || item.requireAny.length === 0) return true;
-  return uploadedFiles.some(f => item.requireAny.some(kw => f.name.includes(kw)));
-}
-function fallbackSearch(q, scope){
-  const accText = maskPII(getAccumulatedText(scope)).trim();
-  if(!accText) return null;
-  const lines = accText.split('\n').map(l=>l.trim()).filter(Boolean);
-  const keywords = q.replace(/[?!.,]/g,'').split(/\s+/).filter(w=>w.length>1 && !STOPWORDS.includes(w));
-  if(keywords.length===0) return null;
-  const scored = lines.map(l=>{
-    const score = keywords.reduce((s,k)=> s + (l.includes(k)?1:0), 0);
-    return {l, score};
-  }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score);
-  if(scored.length===0) return null;
-  return scored.slice(0,3).map(x=>'· '+x.l.replace(/^[-•○]\s*/,'')).join('\n');
-}
-
-function applyTimelineReveal(hit){
-  if(!hit.revealsTimeline) return;
-  const node = findNode(budgetTree, state.selectedNodeId) || findNode(otherWorkList, state.selectedNodeId);
-  if(!node) return;
-  if(hit.timelineKeyToAssign && !node.timelineKey){
-    node.timelineKey = hit.timelineKeyToAssign; /* 사용자가 만든 하위폴더에도 사업 진행 현황을 새로 배정 */
-  }
-  if(node.timelineKey){
-    revealedTimelines.add(node.id);
-    state.openAccordion = node.id;
-  }
-}
-
+/* ===================== 파주시 AI 업무비서 — 실시간 AI 질의응답 =====================
+   사전 시나리오(약속대련) 없이, 모든 질문은 실시간 연결된 AI(⚡)로 전달되어
+   첨부 자료와 파주시 관련 공공기관 공개 정보를 바탕으로 답변합니다. */
 function answerQuestion(q){
   const info = findNodeInfo(state.selectedNodeId);
   const scope = info.scope;
   const scopeLabel = info.label;
-  const hits = findAllScripted(q);
 
-  if(hits.length === 1){
-    const hit = hits[0];
-    if(!filesReadyFor(hit)){
-      return {
-        text: `이 질문에 답변드리려면 관련 자료가 먼저 첨부되어야 합니다.\n\n필요 자료 : ${hit.requireLabel}\n\n좌측 '① 업무 자료 담기'에서 해당 파일을 업로드하신 뒤 다시 질문해 주세요.`,
-        note: "※ 자료 미첨부 상태입니다 (자료 있어야 답한다 원칙). 실제 서비스에서는 관련 자료 유무를 AI가 자동 판별합니다."
-      };
-    }
-    const text = (typeof hit.a === 'function') ? hit.a() : hit.a;
-    applyTimelineReveal(hit);
-    return { text, note: `※ 사전에 준비된 답변입니다 (질문 범위: ${scopeLabel}). 실제 서비스에서는 업로드된 자료를 바탕으로 AI가 실시간 생성합니다.` };
-  }
-
-  if(hits.length > 1){
-    const parts = hits.map(hit=>{
-      if(!filesReadyFor(hit)){
-        return `▸ (자료 필요) ${hit.requireLabel}\n   이 부분은 해당 자료를 첨부하신 뒤 다시 물어봐 주시면 이어서 답변드리겠습니다.`;
-      }
-      const text = (typeof hit.a === 'function') ? hit.a() : hit.a;
-      applyTimelineReveal(hit);
-      return text;
-    });
-    const combined = parts.join('\n\n━━━━━━━━━━━━━━━━━━━━\n\n');
-    return { text: combined, note: `※ 한 번에 물어보신 ${hits.length}가지 요청을 이어서 답변드렸습니다 (질문 범위: ${scopeLabel}). 실제 서비스에서는 업로드된 자료를 바탕으로 AI가 실시간 생성합니다.` };
-  }
-
-  if(isExternalLinkRequest(q)){
-    return {
-      text: `보안상(공공기관 폐쇄망 특성) 검색엔진·법제처 홈페이지 등 외부 사이트에 직접 연결하는 것은 이 화면에서 지원되지 않습니다.\n\n대신 좌측에 첨부하신 자료를 바탕으로 초안을 작성해 드릴 수 있습니다. 관련 자료를 첨부하신 뒤 다시 질문해 주시거나, 우측 '보고서 변환'의 출력 버튼을 활용해 주세요.`,
-      note: "※ 심사기준표의 '보안·개인정보 제약' 원칙에 따른 응대입니다."
-    };
-  }
-
-  const fb = fallbackSearch(q, scope);
-  if(fb){
-    return { text: `등록된 시나리오 질문은 아니지만, "${scopeLabel}" 범위 자료에서 관련 문장을 찾았습니다.\n\n${fb}`, note: "※ 규칙기반 키워드 검색 결과입니다." };
-  }
-  /* 시나리오·규칙기반으로 답할 수 없는 질문 → 실시간 AI가 켜져 있으면 AI에게 넘김 */
   if(LIVE.on && LIVE.key){
     return { liveRequest:true, scope, scopeLabel };
   }
-  const examples = SCRIPTED_QA.map(x=>x.keys[0]).join(' / ');
-  return { text: `이 프로토타입은 사전 등록된 질문 예시에 한해 답변을 준비해 두었습니다.\n등록된 질문 예시: ${examples}\n\n채팅창 우측 상단 ⚡ 버튼에서 실시간 AI를 연결하시면, 등록되지 않은 질문도 실제 AI가 바로 답변합니다.`, note: "※ 실시간 연결 시 등록되지 않은 질문도 AI가 답변합니다." };
+  return {
+    text: `아직 실시간 AI가 연결되지 않았습니다.\n\n채팅창 우측 상단 ⚡ 버튼을 눌러 API 키를 연결하시면, 실제 AI가 첨부 자료와 파주시 관련 공공기관 공개 정보를 바탕으로 바로 답변합니다.`,
+    note: "※ 실시간 AI 연결이 필요합니다."
+  };
 }
 
-/* ===================== 실시간 AI 연결 (선택 기능) =====================
-   기본은 시나리오 모드입니다. 사용자가 직접 입력한 API 키는 이 페이지의 메모리에만 보관되며
-   파일·localStorage 어디에도 저장하지 않습니다(새로고침 시 소멸).                      */
+/* ===================== 실시간 AI 연결 (필수 기능) =====================
+   사용자가 직접 입력한 Gemini API 키는 이 페이지의 메모리에만 보관되며
+   파일·저장소·localStorage 어디에도 저장하지 않습니다(새로고침 시 소멸).
+   OpenAI API는 브라우저 직접 호출(CORS)을 지원하지 않아 Gemini + Google Search
+   그라운딩(웹검색)으로 연동합니다. */
 const LIVE = { on:false, key:'', model:'gemini-2.5-flash' };
 
 function liveSystemPrompt(scopeLabel){
@@ -2741,9 +2393,11 @@ function liveSystemPrompt(scopeLabel){
     '당신은 경기도 파주시청 공무원의 업무를 돕는 AI 업무비서입니다.',
     '아래 원칙을 반드시 지키세요.',
     '1) 한국어 공문서 어투로, 담당 주무관이 바로 결재 라인에 올릴 수 있는 수준으로 간결하게 작성합니다.',
-    '2) 첨부된 자료에 근거해서만 사실을 말하고, 자료에 없는 수치·날짜·기관명은 지어내지 말고 "자료에 없음"이라고 밝힙니다.',
-    '3) 개인정보(연락처·주민번호·계좌)는 마스킹된 상태로 다루며 복원을 시도하지 않습니다.',
-    '4) 답변은 개조식(○, - 기호)으로 정리하되, 필요하면 표 대신 줄바꿈을 사용합니다.',
+    '2) 첨부된 자료가 있으면 그 내용을 우선 근거로 삼습니다.',
+    '3) 첨부 자료에 없는 내용이거나 최신 정보·법령·공고가 필요하면, 웹 검색을 사용해 파주시청(paju.go.kr)·파주시의회·그 밖의 파주시 관련 공공기관 공식 홈페이지를 우선적으로 참고하고, 답변 끝에 참고한 출처(기관명·URL)를 밝힙니다.',
+    '4) 확인되지 않은 수치·날짜·기관명은 지어내지 말고 "확인 필요"라고 밝힙니다.',
+    '5) 개인정보(연락처·주민번호·계좌)는 마스킹된 상태로 다루며 복원을 시도하지 않습니다.',
+    '6) 답변은 개조식(○, - 기호)으로 정리하되, 필요하면 표 대신 줄바꿈을 사용합니다.',
     '',
     `현재 사용자 소속 : ${getOrgLine()} ${getStaffLine().t} ${getStaffLine().n}`,
     `현재 질문 범위 : ${scopeLabel}`
@@ -2754,14 +2408,17 @@ async function callLiveAI(question, scope, scopeLabel){
   const raw = maskPII(getAccumulatedText(scope) || '').trim();
   const MAX = 12000;
   const material = raw ? (raw.length > MAX ? raw.slice(0, MAX) + '\n… (이하 생략)' : raw)
-                       : '(첨부된 자료 없음 — 자료 없이 일반적인 업무 지식으로만 답변하고, 그 사실을 밝힐 것)';
+                       : '(첨부된 자료 없음 — 필요하면 웹 검색으로 파주시 관련 공공기관 공개정보를 찾아 답변하고, 자료 출처를 밝힐 것)';
   const prompt = `${liveSystemPrompt(scopeLabel)}\n\n===== 첨부 자료 본문 =====\n${material}\n\n===== 담당자 질문 =====\n${question}`;
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(LIVE.model)}:generateContent?key=${encodeURIComponent(LIVE.key)}`;
   const res = await fetch(url, {
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ contents:[{ role:'user', parts:[{text: prompt}] }] })
+    body: JSON.stringify({
+      contents:[{ role:'user', parts:[{text: prompt}] }],
+      tools:[{ google_search:{} }]
+    })
   });
   if(!res.ok){
     let detail = '';
@@ -2769,9 +2426,20 @@ async function callLiveAI(question, scope, scopeLabel){
     throw new Error(`HTTP ${res.status}${detail ? ' · ' + detail : ''}`);
   }
   const data = await res.json();
-  const parts = (((data.candidates||[])[0]||{}).content||{}).parts || [];
-  const text = parts.map(p=>p.text||'').join('').trim();
+  const candidate = ((data.candidates||[])[0]) || {};
+  const parts = (candidate.content||{}).parts || [];
+  let text = parts.map(p=>p.text||'').join('').trim();
   if(!text) throw new Error('빈 응답을 받았습니다 (안전 필터 차단 가능성)');
+
+  /* 웹검색 그라운딩 출처가 있으면 답변 하단에 참고 링크로 첨부 */
+  const chunks = ((candidate.groundingMetadata||{}).groundingChunks || [])
+    .map(c => c.web).filter(Boolean);
+  if(chunks.length){
+    const seen = new Set();
+    const links = chunks.filter(w => w.uri && !seen.has(w.uri) && seen.add(w.uri))
+      .slice(0, 5).map(w => `· ${w.title || w.uri} — ${w.uri}`).join('\n');
+    if(links) text += `\n\n[웹검색 참고 출처]\n${links}`;
+  }
   return text;
 }
 
@@ -2787,7 +2455,7 @@ function refreshLiveBtn(){
     liveBtn.title = `실시간 AI 연결됨 (${LIVE.model})`;
   } else {
     liveBtn.classList.remove('on');
-    label.textContent = '시나리오';
+    label.textContent = '미연결';
     liveBtn.title = '실시간 AI 연결 설정';
   }
   /* ✍ 직접 입력의 ✨ 버튼 활성 여부도 함께 갱신 (아직 정의 전이면 무시) */
@@ -2797,7 +2465,7 @@ liveBtn.addEventListener('click', ()=>{
   document.getElementById('liveKeyInput').value = LIVE.key;
   document.getElementById('liveModelInput').value = LIVE.model;
   liveStatus.className = 'live-status';
-  liveStatus.textContent = LIVE.on && LIVE.key ? `현재 상태 : 연결됨 (${LIVE.model})` : '현재 상태 : 시나리오 모드';
+  liveStatus.textContent = LIVE.on && LIVE.key ? `현재 상태 : 연결됨 (${LIVE.model})` : '현재 상태 : 미연결';
   liveModal.classList.add('show');
 });
 document.getElementById('liveCancelBtn').addEventListener('click', ()=> liveModal.classList.remove('show'));
@@ -2807,7 +2475,7 @@ document.getElementById('liveOffBtn').addEventListener('click', ()=>{
   document.getElementById('liveKeyInput').value = '';
   refreshLiveBtn();
   liveStatus.className = 'live-status';
-  liveStatus.textContent = '시나리오 모드로 전환했습니다.';
+  liveStatus.textContent = '연결을 해제했습니다.';
 });
 document.getElementById('liveSaveBtn').addEventListener('click', async ()=>{
   const key = document.getElementById('liveKeyInput').value.trim();
@@ -2825,7 +2493,7 @@ document.getElementById('liveSaveBtn').addEventListener('click', async ()=>{
     LIVE.on = true;
     refreshLiveBtn();
     liveStatus.className = 'live-status ok';
-    liveStatus.textContent = `✓ 연결되었습니다 (${LIVE.model}). 시나리오에 없는 질문은 실시간 AI가 답변합니다.`;
+    liveStatus.textContent = `✓ 연결되었습니다 (${LIVE.model}). 이제 모든 질문에 실시간 AI가 답변합니다.`;
     setTimeout(()=> liveModal.classList.remove('show'), 900);
   }catch(err){
     LIVE.on = false;
@@ -3297,18 +2965,18 @@ function sendChat(q){
   const delay = 650 + Math.floor(Math.random()*750);
   setTimeout(async ()=>{
     const ans = answerQuestion(text);
-    /* 시나리오에 없는 질문 → 실시간 AI 호출 (연결된 경우에만) */
+    /* 모든 질문은 실시간 AI로 처리 (연결된 경우에만) */
     if(ans.liveRequest){
       try{
         const out = await callLiveAI(text, ans.scope, ans.scopeLabel);
         state.chatThinking = false;
-        chatMessages.push({role:'ai', text:out, note:`※ 실시간 AI 응답 (${LIVE.model}) · 첨부 자료 본문을 근거로 생성되었습니다. 결재 전 담당자 확인이 필요합니다.`});
+        chatMessages.push({role:'ai', text:out, note:`※ 실시간 AI 응답 (${LIVE.model}) · 첨부 자료 및 웹검색 결과를 근거로 생성되었습니다. 결재 전 담당자 확인이 필요합니다.`});
       }catch(err){
         state.chatThinking = false;
         chatMessages.push({
           role:'ai',
           text:`실시간 AI 호출에 실패했습니다.\n\n사유 : ${err.message}\n\nAPI 키·모델명·네트워크 상태를 확인해 주세요. 채팅창 우측 상단 ⚡ 버튼에서 다시 설정하실 수 있습니다.`,
-          note:'※ 실시간 연결 실패 — 사전 시나리오 질문은 계속 정상 동작합니다.'
+          note:'※ 실시간 연결 실패 — API 키와 모델명을 다시 확인해 주세요.'
         });
       }
       renderChatLog();
@@ -3399,8 +3067,8 @@ const COACH_STEPS = [
   },
   {
     el:'liveBtn', place:'below',
-    title:'(선택) 실시간 AI 연결',
-    desc:'API 키를 넣으면 <b>사전 시나리오에 없는 질문</b>도 실제 AI가 답변합니다.<br>키 없이도 위 기능은 모두 동작합니다.'
+    title:'(필수) 실시간 AI 연결',
+    desc:'API 키를 넣어야 질문에 답변합니다. <b>첨부 자료 + 파주시 관련 공공기관 공개정보(웹검색)</b>를 근거로 실제 AI가 답변합니다.'
   }
 ];
 
