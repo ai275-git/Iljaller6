@@ -178,6 +178,10 @@ aside.sidebar{
 .acc-block{padding:10px 11px;max-height:150px;overflow-y:auto;}
 .acc-block + .acc-block{border-top:1px solid var(--line);}
 .acc-label{font:800 10px var(--mono);color:var(--primary-1);text-transform:uppercase;letter-spacing:.03em;margin-bottom:7px;position:sticky;top:0;background:#fff;display:flex;align-items:center;gap:6px;}
+/* 접었다 펼 수 있는 자료 목록 헤더 */
+.acc-toggle{width:100%;border:0;padding:2px 0;cursor:pointer;text-align:left;border-radius:5px;}
+.acc-toggle:hover{background:#F2F5FF;color:var(--primary-2);}
+.acc-caret{display:inline-block;width:10px;font-size:10px;line-height:1;}
 .acc-placeholder{font-size:11px;color:#98a0ab;line-height:1.6;background:#F7F8FE;border:1px dashed var(--line);border-radius:7px;padding:9px 10px;}
 .acc-genned{font:700 8.5px var(--sans);color:#0EA96B;background:#E4F7EE;border-radius:4px;padding:1px 6px;text-transform:none;letter-spacing:0;}
 .pstep{display:flex;align-items:flex-start;gap:8px;}
@@ -1571,16 +1575,27 @@ function timelineHtml(steps){
   });
   return html;
 }
+/* 자료 목록을 접어둔 노드 id 모음 — 기본은 '펼침'이라 접은 것만 기억합니다. */
+const FILELIST_COLLAPSED = new Set();
 function renderAccordion(n){
-  let html = `<div class="accordion-panel">`;
-  if(n.timelineKey && TIMELINES[n.timelineKey]){
-    html += `<div class="acc-block"><div class="acc-label">✨ 사업 진행 현황</div>` + timelineHtml(TIMELINES[n.timelineKey]) + `</div>`;
-  }
+  const timeline = (n.timelineKey && TIMELINES[n.timelineKey]) ? TIMELINES[n.timelineKey] : null;
   const files = uploadedFiles.map((f,idx)=>({...f, idx})).filter(f=>f.categoryId === n.id);
-  html += `<div class="acc-block"><div class="acc-label">자료 목록 (${files.length})</div>`;
-  if(files.length===0){
-    html += `<div class="file-empty-mini">첨부된 자료가 없습니다.</div>`;
-  } else {
+  /* 담긴 자료도 없고 진행현황도 없으면 아코디언 자체를 그리지 않습니다
+     ("자료 목록 (0) · 첨부된 자료가 없습니다" 빈 칸이 계속 보이던 문제) */
+  if(!timeline && files.length===0) return '';
+
+  let html = `<div class="accordion-panel">`;
+  if(timeline){
+    html += `<div class="acc-block"><div class="acc-label">✨ 사업 진행 현황</div>` + timelineHtml(timeline) + `</div>`;
+  }
+  if(files.length){
+    /* 자료 목록은 접었다 펼 수 있습니다(기본 펼침) */
+    const collapsed = FILELIST_COLLAPSED.has(n.id);
+    html += `<div class="acc-block">
+      <button type="button" class="acc-label acc-toggle" data-filetoggle="${n.id}" aria-expanded="${!collapsed}">
+        <span class="acc-caret">${collapsed ? '▸' : '▾'}</span>자료 목록 (${files.length})
+      </button>`;
+    if(collapsed){ html += `</div></div>`; return html; }
     files.forEach(f=>{
       const icon = f.status==='parsing' ? '⏳' : (f.status==='ok' ? '📄' : '📎');
       const note = f.status==='parsing' ? '<span class="untyped">(본문 인식 중…)</span>'
@@ -1593,8 +1608,9 @@ function renderAccordion(n){
       const warn = f.sensitiveWarn ? `<div class="sensitive-warn">⚠ 민감 표시 단어(대외비·비공개 등)가 포함되어 있습니다. AI에게 전달하기 전에 내용을 확인해 주세요.</div>` : '';
       html += `<div class="file-row"><span class="fname">${icon} ${f.name} ${note}</span><button data-idx="${f.idx}" class="rmFileBtnAcc">삭제</button></div>${warn}`;
     });
+    html += `</div>`;
   }
-  html += `</div></div>`;
+  html += `</div>`;
   return html;
 }
 
@@ -1626,6 +1642,15 @@ function renderTreeNodes(nodes, depth, kind){
 }
 function bindTreeEvents(box){
   box.addEventListener('click', (e)=>{
+    /* 자료 목록 접기/펼치기 — 노드 선택 토글로 번지지 않도록 여기서 끝냅니다 */
+    const toggleBtn = e.target.closest('[data-filetoggle]');
+    if(toggleBtn){
+      e.stopPropagation();
+      const id = toggleBtn.dataset.filetoggle;
+      if(FILELIST_COLLAPSED.has(id)) FILELIST_COLLAPSED.delete(id); else FILELIST_COLLAPSED.add(id);
+      renderBudgetTree(); renderOtherTree();
+      return;
+    }
     const addId = e.target.dataset.add;
     const delId = e.target.dataset.del;
     const rmIdx = e.target.dataset.idx;
@@ -1766,8 +1791,19 @@ document.getElementById('fileCategory').addEventListener('change', (e)=>{
    드롭존(drag&drop) 양쪽에서 함께 사용합니다. */
 async function handleFilesAdded(fileList){
   const files = Array.from(fileList);
+  if(!files.length) return;
   const catSel = document.getElementById('fileCategory');
-  const categoryId = catSel.value || null;
+  /* 바구니(카테고리)가 아직 선택되지 않았으면 첫 번째 항목으로 자동 지정합니다.
+     예전에는 categoryId가 null이 되어 파일이 어느 항목에도 안 붙고 화면에서 사라졌습니다. */
+  let categoryId = catSel.value || lastFileCategoryId || null;
+  if(!categoryId){
+    const entries = flattenTreeEntries(budgetTree).concat(flattenTreeEntries(otherWorkList));
+    categoryId = entries.length ? entries[0].id : null;
+    if(categoryId){
+      lastFileCategoryId = categoryId;
+      if(catSel) catSel.value = categoryId;
+    }
+  }
   const categoryNode = categoryId ? (findNode(budgetTree, categoryId) || findNode(otherWorkList, categoryId)) : null;
   const category = categoryNode ? categoryNode.name : null;
   const bureau = state.reg.unit || '';
@@ -1781,6 +1817,14 @@ async function handleFilesAdded(fileList){
       sensitiveWarn:false, status: SUPPORTED_EXT_RE.test(file.name) ? 'parsing' : 'unsupported'
     };
     uploadedFiles.push(entry);
+    /* 담은 항목을 자동으로 선택·펼쳐서 파일이 들어간 것이 바로 보이게 합니다.
+       (예전에는 아코디언이 닫혀 있으면 첨부해도 화면에 아무 변화가 없어
+        "담기가 안 된다"고 느껴졌습니다) */
+    if(categoryId){
+      state.selectedNodeId = categoryId;
+      state.openAccordion  = categoryId;
+      FILELIST_COLLAPSED.delete(categoryId);
+    }
     renderBudgetTree(); renderOtherTree(); /* "처리 중" 상태를 먼저 화면에 표시 */
 
     if(entry.status === 'parsing'){
@@ -1797,6 +1841,8 @@ async function handleFilesAdded(fileList){
       renderBudgetTree(); renderOtherTree();
     }
   }
+  /* 첨부가 끝나면 답변범위·중앙 화면도 새 상태에 맞춰 갱신 */
+  try{ refreshScopeFilterUI(); renderFeatBar(); renderCenter(); }catch(e){}
 }
 document.getElementById('fileInput').addEventListener('change', (e)=>{
   handleFilesAdded(e.target.files);
@@ -2247,9 +2293,219 @@ async function ensureZipLib(){
   try{ await loadScriptOnce(PARSE_LIB_URLS.zip); LIBS_LOADED.zip = true; return true; }
   catch(e){ PARSE_LIB_BLOCKED = true; console.warn('JSZip 로드 실패, 파일명만 인식합니다', e); return false; }
 }
+
+/* ===================== 외부 CDN 없이 동작하는 자체 파서 (행정망 대비) =====================
+   행정망·보안망에서 cdnjs 접속이 막히면 위 라이브러리를 받아오지 못합니다.
+   그 경우에도 hwpx·xlsx·docx(모두 ZIP 기반)와 텍스트형 PDF를 열 수 있도록,
+   브라우저 내장 DecompressionStream만 사용하는 예비 파서를 둡니다. */
+function nativeUnzipSupported(){ return typeof DecompressionStream !== 'undefined'; }
+async function inflateRaw(u8){
+  const s = new Blob([u8]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+  return new Uint8Array(await new Response(s).arrayBuffer());
+}
+/* ZIP 중앙 디렉터리를 읽어 {파일명: Uint8Array} 로 되돌려 줍니다. */
+async function unzipToMap(arrayBuffer){
+  const u8 = new Uint8Array(arrayBuffer);
+  const dv = new DataView(arrayBuffer);
+  let eocd = -1;
+  const minPos = Math.max(0, u8.length - 22 - 65535);
+  for(let i = u8.length - 22; i >= minPos; i--){
+    if(dv.getUint32(i, true) === 0x06054b50){ eocd = i; break; }
+  }
+  if(eocd < 0) throw new Error('ZIP 구조를 찾지 못했습니다');
+  const count = dv.getUint16(eocd + 10, true);
+  let off = dv.getUint32(eocd + 16, true);
+  const dec = new TextDecoder('utf-8');
+  const out = {};
+  for(let i = 0; i < count; i++){
+    if(off + 46 > u8.length || dv.getUint32(off, true) !== 0x02014b50) break;
+    const method   = dv.getUint16(off + 10, true);
+    const compSize = dv.getUint32(off + 20, true);
+    const nameLen  = dv.getUint16(off + 28, true);
+    const extraLen = dv.getUint16(off + 30, true);
+    const cmtLen   = dv.getUint16(off + 32, true);
+    const localOff = dv.getUint32(off + 42, true);
+    const name     = dec.decode(u8.subarray(off + 46, off + 46 + nameLen));
+    const lNameLen  = dv.getUint16(localOff + 26, true);
+    const lExtraLen = dv.getUint16(localOff + 28, true);
+    const start = localOff + 30 + lNameLen + lExtraLen;
+    const raw = u8.subarray(start, start + compSize);
+    try{ out[name] = (method === 0) ? raw : await inflateRaw(raw); }catch(e){}
+    off += 46 + nameLen + extraLen + cmtLen;
+  }
+  return out;
+}
+function utf8(u8){ return new TextDecoder('utf-8').decode(u8); }
+function unescXml(s){
+  return s.replace(/&#x([0-9a-fA-F]+);/g, (m,h)=>String.fromCodePoint(parseInt(h,16)))
+          .replace(/&#(\d+);/g, (m,d)=>String.fromCodePoint(parseInt(d,10)))
+          .replace(/&lt;/g,'<').replace(/&gt;/g,'>')
+          .replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&amp;/g,'&');
+}
+function stripXmlTags(x){ return unescXml(x.replace(/<[^>]+>/g,'')); }
+/* 태그 하나(예: hp:t, w:t) 안의 텍스트를 문단(pTag) 단위로 모읍니다. */
+function textByParagraph(xml, pTag, tTag){
+  let text = '';
+  xml.split(new RegExp('<'+pTag+'[\\s>]')).forEach(chunk=>{
+    const m = chunk.match(new RegExp('<'+tTag+'[^>]*>[\\s\\S]*?<\\/'+tTag+'>','g'));
+    if(!m) return;
+    const line = m.map(x=>x.replace(new RegExp('^<'+tTag+'[^>]*>|<\\/'+tTag+'>$','g'),''))
+                  .map(stripXmlTags).join('').trim();
+    if(line) text += line + '\n';
+  });
+  return text.trim() || null;
+}
+async function nativeHwpxText(file){
+  const map = await unzipToMap(await file.arrayBuffer());
+  const names = Object.keys(map)
+    .filter(n=>/^Contents\/section\d+\.xml$/i.test(n))
+    .sort((a,b)=>Number(a.match(/section(\d+)/i)[1]) - Number(b.match(/section(\d+)/i)[1]));
+  if(!names.length) return null;
+  let text = '';
+  names.forEach(n=>{ const t = textByParagraph(utf8(map[n]), 'hp:p', 'hp:t'); if(t) text += t + '\n'; });
+  return text.trim() || null;
+}
+async function nativeDocxText(file){
+  const map = await unzipToMap(await file.arrayBuffer());
+  const key = Object.keys(map).find(n=>/^word\/document\.xml$/i.test(n));
+  if(!key) return null;
+  return textByParagraph(utf8(map[key]), 'w:p', 'w:t');
+}
+async function nativeXlsxText(file){
+  const map = await unzipToMap(await file.arrayBuffer());
+  const shared = [];
+  const ssKey = Object.keys(map).find(n=>/^xl\/sharedStrings\.xml$/i.test(n));
+  if(ssKey){
+    (utf8(map[ssKey]).match(/<si[\s>][\s\S]*?<\/si>/g) || []).forEach(si=>{
+      const parts = si.match(/<t[^>]*>[\s\S]*?<\/t>/g) || [];
+      shared.push(parts.map(stripXmlTags).join(''));
+    });
+  }
+  const sheets = Object.keys(map)
+    .filter(n=>/^xl\/worksheets\/sheet\d+\.xml$/i.test(n))
+    .sort((a,b)=>Number(a.match(/sheet(\d+)/i)[1]) - Number(b.match(/sheet(\d+)/i)[1]))
+    .slice(0,10);
+  let text = '';
+  sheets.forEach((name, si)=>{
+    const xml = utf8(map[name]);
+    let sheetText = '';
+    (xml.match(/<row[\s>][\s\S]*?<\/row>/g) || []).forEach(row=>{
+      const cells = [];
+      (row.match(/<c[\s>][\s\S]*?(?:\/>|<\/c>)/g) || []).forEach(cell=>{
+        const isShared = /\st="s"/.test(cell);
+        const isStr    = /\st="(?:inlineStr|str)"/.test(cell);
+        let v = '';
+        if(isStr){
+          const t = cell.match(/<t[^>]*>[\s\S]*?<\/t>/);
+          v = t ? stripXmlTags(t[0]) : '';
+        }else{
+          const m = cell.match(/<v[^>]*>([\s\S]*?)<\/v>/);
+          if(m){ v = unescXml(m[1]); if(isShared) v = shared[Number(v)] || ''; }
+        }
+        cells.push(v);
+      });
+      const line = cells.join(',').replace(/,+$/,'');
+      if(line.trim()) sheetText += line + '\n';
+    });
+    if(sheetText.trim()) text += '[시트 ' + (si+1) + ']\n' + sheetText + '\n';
+  });
+  return text.trim() || null;
+}
+/* PDF 자체 파서 — 스트림의 /Filter 체인(ASCII85 → Flate 등)을 풀어 텍스트 연산자만 회수합니다.
+   한글이 CID 폰트로 들어간 PDF는 정확도가 낮으므로, pdf.js를 쓸 수 있으면 그쪽이 우선입니다. */
+function ascii85Decode(str){
+  let s = str.replace(/\s/g, '');
+  if(s.startsWith('<~')) s = s.slice(2);
+  const endIdx = s.indexOf('~>');
+  if(endIdx >= 0) s = s.slice(0, endIdx);
+  const out = [];
+  let tuple = [], i = 0;
+  while(i < s.length){
+    const ch = s[i++];
+    if(ch === 'z' && tuple.length === 0){ out.push(0,0,0,0); continue; }
+    const code = ch.charCodeAt(0) - 33;
+    if(code < 0 || code > 84) continue;
+    tuple.push(code);
+    if(tuple.length === 5){
+      let v = 0;
+      for(const t of tuple) v = v * 85 + t;
+      out.push((v>>>24)&255, (v>>>16)&255, (v>>>8)&255, v&255);
+      tuple = [];
+    }
+  }
+  if(tuple.length > 1){
+    const n = tuple.length;
+    for(let k = n; k < 5; k++) tuple.push(84);
+    let v = 0;
+    for(const t of tuple) v = v * 85 + t;
+    const bytes = [(v>>>24)&255, (v>>>16)&255, (v>>>8)&255, v&255];
+    for(let k = 0; k < n - 1; k++) out.push(bytes[k]);
+  }
+  return new Uint8Array(out);
+}
+async function inflateAuto(u8){
+  /* zlib(deflate) 우선, 실패하면 헤더 없는 raw deflate로 재시도 */
+  for(const fmt of ['deflate','deflate-raw']){
+    try{
+      const s = new Blob([u8]).stream().pipeThrough(new DecompressionStream(fmt));
+      return new Uint8Array(await new Response(s).arrayBuffer());
+    }catch(e){}
+  }
+  return null;
+}
+async function nativePdfText(file){
+  const u8 = new Uint8Array(await file.arrayBuffer());
+  const latin = new TextDecoder('latin1').decode(u8);
+  let out = '';
+  const re = /stream\r?\n/g;
+  let m;
+  while((m = re.exec(latin)) !== null){
+    const start = m.index + m[0].length;
+    const end = latin.indexOf('endstream', start);
+    if(end < 0) break;
+    /* 이 스트림 바로 앞의 사전(<< ... >>)에서 필터 종류를 읽습니다 */
+    const dictStart = latin.lastIndexOf('<<', m.index);
+    const dict = dictStart >= 0 ? latin.slice(dictStart, m.index) : '';
+    /* 스트림 끝의 개행(\r\n)은 데이터가 아니므로 잘라냅니다 — 남겨두면 압축 해제가 실패합니다 */
+    let dataEnd = end;
+    while(dataEnd > start && (u8[dataEnd-1] === 0x0A || u8[dataEnd-1] === 0x0D)) dataEnd--;
+    let data = u8.subarray(start, dataEnd);
+    if(/ASCII85Decode/.test(dict)){
+      try{ data = ascii85Decode(latin.slice(start, dataEnd)); }catch(e){}
+    }
+    let content = null;
+    if(/FlateDecode/.test(dict) || !/\/Filter/.test(dict)){
+      const inf = await inflateAuto(data);
+      if(inf) content = new TextDecoder('latin1').decode(inf);
+    }
+    if(content === null){
+      const chunk = latin.slice(start, end);
+      if(/\b(Tj|TJ)\b/.test(chunk)) content = chunk;   /* 비압축 스트림 */
+    }
+    if(content && /\b(Tj|TJ)\b/.test(content)){
+      let pageText = '';
+      const tre = /\((?:\\[\s\S]|[^\\()])*\)/g;
+      let t;
+      while((t = tre.exec(content)) !== null){
+        pageText += t[0].slice(1,-1)
+          .replace(/\\n/g,'\n').replace(/\\r/g,'').replace(/\\t/g,'\t')
+          .replace(/\\(\d{1,3})/g,(s,o)=>String.fromCharCode(parseInt(o,8)))
+          .replace(/\\([\s\S])/g,'$1');
+      }
+      if(pageText.trim()) out += pageText.trim() + '\n';
+    }
+    re.lastIndex = end;
+  }
+  return out.trim() || null;
+}
+
 /* 텍스트가 있는 PDF만 지원 — 스캔(이미지) PDF는 OCR이 별도로 필요해 이번 범위에서는 제외 */
 async function extractPdfText(file){
-  if(!(await ensurePdfLib())) return null;
+  if(!(await ensurePdfLib())){
+    if(!nativeUnzipSupported()) return null;
+    try{ return await nativePdfText(file); }
+    catch(e){ console.warn('PDF 자체 파싱 실패', e); return null; }
+  }
   try{
     const buf = await file.arrayBuffer();
     const pdf = await window.pdfjsLib.getDocument({data:buf}).promise;
@@ -2265,7 +2521,11 @@ async function extractPdfText(file){
   }catch(e){ console.warn('PDF 파싱 실패', e); return null; }
 }
 async function extractXlsxText(file){
-  if(!(await ensureXlsxLib())) return null;
+  if(!(await ensureXlsxLib())){
+    if(!nativeUnzipSupported()) return null;
+    try{ return await nativeXlsxText(file); }
+    catch(e){ console.warn('엑셀 자체 파싱 실패', e); return null; }
+  }
   try{
     const buf = await file.arrayBuffer();
     const wb = window.XLSX.read(buf, {type:'array'});
@@ -2278,7 +2538,11 @@ async function extractXlsxText(file){
   }catch(e){ console.warn('엑셀 파싱 실패', e); return null; }
 }
 async function extractDocxText(file){
-  if(!(await ensureDocxLib())) return null;
+  if(!(await ensureDocxLib())){
+    if(!nativeUnzipSupported()) return null;
+    try{ return await nativeDocxText(file); }
+    catch(e){ console.warn('docx 자체 파싱 실패', e); return null; }
+  }
   try{
     const buf = await file.arrayBuffer();
     const result = await window.mammoth.extractRawText({arrayBuffer: buf});
@@ -2290,7 +2554,11 @@ async function extractDocxText(file){
    ※ 구형 .hwp(바이너리 형식)는 브라우저에서 해석할 수 없어 파일명만 인식됩니다.
       한글에서 [다른 이름으로 저장] → 파일 형식을 "한글 문서 (*.hwpx)"로 저장해 주세요. */
 async function extractHwpxText(file){
-  if(!(await ensureZipLib())) return null;
+  if(!(await ensureZipLib())){
+    if(!nativeUnzipSupported()) return null;
+    try{ return await nativeHwpxText(file); }
+    catch(e){ console.warn('HWPX 자체 파싱 실패', e); return null; }
+  }
   try{
     const buf = await file.arrayBuffer();
     const zip = await window.JSZip.loadAsync(buf);
