@@ -1328,8 +1328,8 @@ header.top{height:3px;background:linear-gradient(90deg,#166b9b,#28a4d7 60%,#7dd3
       <div class="live-field">
         <label>AI 제공사</label>
         <select id="liveProviderSelect">
-          <option value="gemini">Google Gemini (구글 검색 그라운딩)</option>
           <option value="claude">Anthropic Claude (웹검색 도구)</option>
+          <option value="gemini">Google Gemini (구글 검색 그라운딩)</option>
         </select>
         <div class="live-hint" id="liveProviderHint">제공사를 바꾸면 아래 API 키·모델명 안내가 함께 바뀝니다.</div>
       </div>
@@ -3895,7 +3895,7 @@ function answerQuestion(q){
    심사가 끝나면 이 값을 반드시 지우거나 무효화(재발급)하세요. 배포 전에는
    아래 문자열을 실제 발급받은 키로 교체해야 자동 연결이 동작합니다. */
 const JUDGING_PERIOD_API_KEY = '여기에_심사기간용_API_키를_붙여넣으세요';
-const LIVE = { on:false, provider:'gemini', key:JUDGING_PERIOD_API_KEY, model:'gemini-2.5-flash' };
+const LIVE = { on:false, provider:'claude', key:JUDGING_PERIOD_API_KEY, model:'claude-sonnet-5' };
 
 /* 제공사별 기본값·안내문구. 모달에서 제공사를 바꾸면 아래 값이 화면에 반영됩니다. */
 const PROVIDERS = {
@@ -3960,7 +3960,8 @@ const aiGenerate = llmGenerate;
 /* Google Gemini generateContent API + 구글 검색 그라운딩 */
 async function geminiGenerate(payload, opts){
   opts = opts || {};
-  const model = LIVE.model || 'gemini-2.5-flash';
+  /* opts.model 로 호출별 모델 교체 가능 — 단순 검색·요약은 더 빠른 모델로 처리합니다. */
+  const model = opts.model || LIVE.model || 'gemini-2.5-flash';
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(LIVE.key)}`;
   const parts = [{text: payload.text}];
   (payload.images || []).forEach(img=>{
@@ -3968,7 +3969,13 @@ async function geminiGenerate(payload, opts){
   });
   const baseBody = {
     contents: [{role:'user', parts}],
-    generationConfig: { maxOutputTokens: opts.maxOutputTokens || 4096, temperature: 0.4 }
+    generationConfig: {
+      maxOutputTokens: opts.maxOutputTokens || 4096,
+      temperature: 0.4,
+      /* 속도 최적화 : 검색·요약 작업에는 추론 토큰이 거의 불필요하므로 thinking을 끕니다.
+         (opts.thinking === true 를 넘기면 기본 동작으로 되돌아갑니다) */
+      ...(opts.thinking ? {} : { thinkingConfig: { thinkingBudget: 0 } })
+    }
   };
 
   async function send(withSearch){
@@ -4058,11 +4065,17 @@ async function claudeGenerate(payload, opts){
       },
       signal: controller ? controller.signal : undefined,
       body: JSON.stringify({
-        model: LIVE.model,
+        /* opts.model 로 호출별 모델 교체 가능 — 단순 검색·요약은 더 빠른 모델로 처리합니다. */
+        model: opts.model || LIVE.model,
         max_tokens: opts.maxOutputTokens || 1500,
         messages: [{ role:'user', content: promptText }],
         /* undefined는 JSON.stringify에서 자동 제외됩니다 — 검색 없이 호출할 때 사용 */
-        tools: (opts.webSearch === false) ? undefined : [{ type:'web_search_20250305', name:'web_search' }]
+        /* 속도 최적화 : max_uses로 검색 반복 횟수를 묶고, 필요 시 도메인을 좁힙니다.
+           검색을 5~10회 돌면 응답이 수십 초 느려지므로 상한이 중요합니다. */
+        tools: (opts.webSearch === false) ? undefined : [Object.assign(
+          { type:'web_search_20250305', name:'web_search', max_uses: opts.maxSearches || 3 },
+          (opts.allowedDomains && opts.allowedDomains.length) ? { allowed_domains: opts.allowedDomains } : {}
+        )]
       })
     });
   }catch(e){
@@ -4139,6 +4152,16 @@ async function callLiveAI(question, scope, scopeLabel, attachments){
 }
 
 /* ===================== 관련 보도자료 · 법령 자동 조회 ===================== */
+/* 보도자료·법령 조회 전용 모델 — 검색 결과를 목록으로 정리하는 작업이라
+   채팅용 모델(LIVE.model)보다 가벼운 모델로 돌리면 응답이 크게 빨라집니다.
+   제공사별로 지정하며, 값을 ''(빈 문자열)로 두면 LIVE.model을 그대로 씁니다. */
+const NEWS_LAW_FAST_MODEL = {
+  claude: 'claude-haiku-4-5-20251001',
+  gemini: 'gemini-2.5-flash-lite'
+};
+function newsLawFastModel(){
+  return NEWS_LAW_FAST_MODEL[LIVE.provider] || '';
+}
 let NEWS_LAW = {press:'', law:''};   /* 조회 결과 캐시 — 문서 생성 시 참고 항목으로 재사용 */
 let NEWS_LAW_COUNTDOWN_TIMER = null;
 let NEWS_LAW_RETRY_ATTEMPTS = 0;
@@ -4152,7 +4175,7 @@ function cancelNewsLawCountdown(){
     NEWS_LAW_COUNTDOWN_TIMER = null;
   }
 }
-function startNewsLawCountdown(seconds=30, title='관련 보도자료 · 법령 업데이트 중 잠시만 기다려주세요'){
+function startNewsLawCountdown(seconds=30, title='관련 보도자료 · 법령 업데이트 중 잠시만 기다려주세요', opts={}){
   cancelNewsLawCountdown();
   const duration = seconds * 1000;
   const startedAt = Date.now();
@@ -4170,7 +4193,10 @@ function startNewsLawCountdown(seconds=30, title='관련 보도자료 · 법령 
       </div>`);
     if(elapsed >= duration){
       cancelNewsLawCountdown();
-      fetchNewsAndLawWithQuotaGate();
+      /* 429 자동 재시도는 이미 충분히 기다린 상태이므로 게이트를 다시 통과시키지 않습니다.
+         (예전에는 재시도 대기 + 게이트 대기가 겹쳐 몇 분씩 지연됐습니다) */
+      if(opts.skipGate){ reserveNewsLawRequest(); fetchNewsAndLaw(); }
+      else fetchNewsAndLawWithQuotaGate();
     }
   };
   tick();
@@ -4181,7 +4207,9 @@ function readNewsLawNextRequest(){
   catch(e){ return 0; }
 }
 function reserveNewsLawRequest(){
-  try{ localStorage.setItem(NEWS_LAW_QUOTA_GATE_KEY, String(Date.now() + 65000)); }
+  /* 여러 탭 동시 호출만 막으면 되므로 짧게 잡습니다.
+     (예전 65초는 API 속도와 무관하게 화면을 1분 이상 붙잡아 두는 원인이었습니다) */
+  try{ localStorage.setItem(NEWS_LAW_QUOTA_GATE_KEY, String(Date.now() + 8000)); }
   catch(e){}
 }
 function fetchNewsAndLawWithQuotaGate(){
@@ -4314,37 +4342,65 @@ async function fetchNewsAndLaw(){
   }
   const duty = (state.reg.matchedDuty || '').trim();
   const dutyLine = duty ? `담당업무 : ${duty}` : '담당업무가 매칭되지 않아, 소속 부서명을 기준으로 조회합니다.';
-  renderNewsLawBox(`<div class="news-law-loading"><span class="think-dot"></span><span class="think-dot"></span><span class="think-dot"></span> 보도자료·법령 조회 중…</div>`);
   const today = new Date();
-  const prompt = [
+
+  /* 속도 최적화 : 보도자료(최근 1주)와 법령(최근 1년)은 검색 성격이 달라
+     한 번에 묶으면 순차 처리됩니다. 두 개로 나눠 동시에 던지고,
+     먼저 도착한 쪽부터 화면에 그려 체감 대기시간을 줄입니다. */
+  const header = [
     '당신은 경기도 파주시청 공무원의 업무를 돕는 AI 업무비서입니다. 웹 검색을 사용해 아래 담당업무와 관련된 자료를 찾아주세요.',
     `오늘 날짜 : ${today.getFullYear()}. ${today.getMonth()+1}. ${today.getDate()}.`,
     `소속 : ${getOrgLine()}`,
     dutyLine,
     '',
-    '다음 두 항목을 반드시 아래 형식 그대로, 대괄호 머리글([보도자료], [법령])을 포함해 개조식(○, - 기호)으로 답하세요. 관련 자료를 찾지 못하면 "관련 자료를 찾지 못했습니다"라고 정직하게 적으세요. 각 항목은 최대 5개까지만 적고, 각 자료 끝에는 반드시 [출처 기관명](원문 URL) 형식의 클릭 가능한 출처 링크를 포함하세요.',
-    '',
-    '[보도자료]',
-    '(최근 1주일 이내 게시된, 위 담당업무·부서와 관련된 파주시 보도자료·뉴스)',
-    '',
-    '[법령]',
-    '(최근 1년 이내 제정·개정된, 위 담당업무와 관련된 법령 또는 파주시 자치법규·조례)'
+    '개조식(○, - 기호)으로 간결하게, 최대 3개까지만 적으세요. 관련 자료를 찾지 못하면 "관련 자료를 찾지 못했습니다"라고만 적으세요.',
+    '각 자료 끝에는 반드시 [출처 기관명](원문 URL) 형식의 클릭 가능한 출처 링크를 포함하세요. 서론·맺음말 없이 목록만 출력하세요.',
+    ''
   ].join('\n');
+
+  /* domains : Claude는 web_search의 allowed_domains로, Gemini는 그라운딩이 도메인 제한을
+     지원하지 않으므로 프롬프트 힌트로 검색 범위를 좁힙니다. */
+  const siteHint = list => `우선 다음 사이트에서 찾으세요 : ${list.join(', ')}\n`;
+  const jobs = [
+    { key:'press', selector:'#nlPressBody',
+      domains: ['paju.go.kr','council.paju.go.kr','korea.kr'],
+      task: '최근 1주일 이내 게시된, 위 담당업무·부서와 관련된 파주시 보도자료·뉴스를 찾아 목록으로 적으세요.' },
+    { key:'law', selector:'#nlLawBody',
+      domains: ['law.go.kr','elis.go.kr','paju.go.kr'],
+      task: '최근 1년 이내 제정·개정된, 위 담당업무와 관련된 법령 또는 파주시 자치법규·조례를 찾아 목록으로 적으세요.' }
+  ].map(j => Object.assign(j, { prompt: header + siteHint(j.domains) + j.task }));
+
+  const spinner = '<div class="news-law-loading"><span class="think-dot"></span><span class="think-dot"></span><span class="think-dot"></span> 조회 중…</div>';
+  renderNewsLawBox(`
+    <div class="news-law-sec">
+      <div class="news-law-sec-title">📰 최근 1주일 보도자료</div>
+      <div class="news-law-sec-body" id="nlPressBody">${spinner}</div>
+    </div>
+    <div class="news-law-sec">
+      <div class="news-law-sec-title">⚖ 관련 법령 · 자치법규 (최근 1년)</div>
+      <div class="news-law-sec-body" id="nlLawBody">${spinner}</div>
+    </div>
+  `);
+
+  const result = {press:'', law:''};
   try{
-    const raw = await llmGenerate(prompt, {timeout: 60000});
-    const {press, law} = parseNewsLawSections(raw);
-    NEWS_LAW = {press, law};
+    await Promise.all(jobs.map(async job=>{
+      const raw = await llmGenerate(job.prompt, {
+        timeout: 45000,
+        /* 보도자료·법령 목록은 검색 결과 정리 작업이라 최상위 모델이 필요 없습니다.
+           채팅은 LIVE.model(Sonnet)을 그대로 쓰고, 이 위젯만 빠른 모델로 돌립니다. */
+        model: newsLawFastModel() || undefined,
+        maxOutputTokens: 900,      /* 3건 목록에는 충분 — 생성 시간을 줄입니다 */
+        maxSearches: 3,            /* Claude web_search 반복 상한 */
+        allowedDomains: job.domains,
+        noSources: true            /* 출처는 프롬프트에서 본문에 넣도록 지시했으므로 중복 방지 */
+      });
+      result[job.key] = (raw || '').trim();
+      const el = document.querySelector(job.selector);
+      if(el) el.innerHTML = formatNewsLawItems(result[job.key] || '관련 자료를 찾지 못했습니다', job.key);
+    }));
+    NEWS_LAW = result;
     NEWS_LAW_RETRY_ATTEMPTS = 0;
-    renderNewsLawBox(`
-      <div class="news-law-sec">
-        <div class="news-law-sec-title">📰 최근 1주일 보도자료</div>
-        <div class="news-law-sec-body">${formatNewsLawItems(press||'관련 자료를 찾지 못했습니다','press')}</div>
-      </div>
-      <div class="news-law-sec">
-        <div class="news-law-sec-title">⚖ 관련 법령 · 자치법규 (최근 1년)</div>
-        <div class="news-law-sec-body">${formatNewsLawItems(law||'관련 자료를 찾지 못했습니다','law')}</div>
-      </div>
-    `);
   }catch(err){
     const message = String(err && err.message || err);
     if(/HTTP 429/.test(message) && NEWS_LAW_RETRY_ATTEMPTS < 3){
@@ -4353,7 +4409,8 @@ async function fetchNewsAndLaw(){
       const retrySeconds = retryMatch ? Math.max(5, Math.ceil(Number(retryMatch[1])) + 2) : 30;
       startNewsLawCountdown(
         retrySeconds,
-        `관련 보도자료 · 법령 업데이트 중 잠시만 기다려주세요 · 자동 재시도 ${NEWS_LAW_RETRY_ATTEMPTS}/3`
+        `관련 보도자료 · 법령 업데이트 중 잠시만 기다려주세요 · 자동 재시도 ${NEWS_LAW_RETRY_ATTEMPTS}/3`,
+        {skipGate:true}
       );
       return;
     }
@@ -4428,7 +4485,7 @@ document.getElementById('liveSaveBtn').addEventListener('click', async ()=>{
      제거합니다 — 그대로 두면 HTTP 헤더 값으로 쓸 수 없어 fetch 자체가 실패합니다
      ("non ISO-8859-1 code point" 오류). */
   const sanitizeHeaderValue = (v)=> v.replace(/[^\x20-\x7E]/g, '').trim();
-  const provider = document.getElementById('liveProviderSelect').value || 'gemini';
+  const provider = document.getElementById('liveProviderSelect').value || 'claude';
   const meta = PROVIDERS[provider] || PROVIDERS.gemini;
   const key = sanitizeHeaderValue(document.getElementById('liveKeyInput').value);
   const model = sanitizeHeaderValue(document.getElementById('liveModelInput').value) || meta.defaultModel;
