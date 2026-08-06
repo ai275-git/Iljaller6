@@ -1202,7 +1202,7 @@ header.top{height:3px;background:linear-gradient(90deg,#166b9b,#28a4d7 60%,#7dd3
         <div class="report-head">
           <div class="report-head-row">
             <span class="report-title"><span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6z"></path><path d="M15 3v4h4M9 12h6M9 16h6"></path></svg></span>문서 및 현황 생성</span>
-            <span class="report-tag">7종 서식</span>
+            <span class="report-tag" id="reportTag">8종 서식</span>
           </div>
           <div class="rbtn-grid" id="reportBtnGrid"></div>
         </div>
@@ -1967,7 +1967,7 @@ fileDropzone.addEventListener('drop', (e)=>{
 });
 
 /* ---------- 예시 자료 담기 (가공된 예시 파일 3건을 즉시 투입) ----------
-   실제 File 객체 없이도 문서 7종 변환까지 바로 시연할 수 있도록, 이미 텍스트로
+   실제 File 객체 없이도 문서 8종 변환까지 바로 시연할 수 있도록, 이미 텍스트로
    가공된 예시 자료 3건을 uploadedFiles에 직접 추가합니다(추출/파싱 과정 생략). */
 const SAMPLE_BASKET_FILES = [
   {
@@ -3541,6 +3541,9 @@ function genProgress(p){
 const reportBtnGrid = document.getElementById('reportBtnGrid');
 function renderReportButtons(){
   reportBtnGrid.innerHTML = '';
+  /* 서식 종수는 GENERATORS에서 자동 계산합니다(서식 추가·삭제 시 배지 자동 반영) */
+  const reportTag = document.getElementById('reportTag');
+  if(reportTag) reportTag.textContent = Object.keys(GENERATORS).length + '종 서식';
   Object.entries(GENERATORS).forEach(([key,g])=>{
     const btn = document.createElement('button');
     btn.className = 'rbtn' + (state.selectedReport===key ? ' active':'');
@@ -4747,8 +4750,8 @@ const COACH_STEPS = [
   },
   {
     el:'reportBtnGrid', place:'above', ensureVisible:true,
-    title:'문서 7종으로 바꿔 보세요',
-    desc:'담당업무를 바탕으로 <b>공문서·쪽지보고·인수인계서 등 7종 서식</b>을 자동 변환하며 복사·다운로드할 수 있습니다.'
+    title:'문서 8종으로 바꿔 보세요',
+    desc:'담당업무를 바탕으로 <b>공문서·쪽지보고·인수인계서·예산서 등 8종 서식</b>을 자동 변환하며 복사·다운로드할 수 있습니다.'
   },
   {
     el:'liveBtn', place:'below',
